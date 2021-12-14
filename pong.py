@@ -34,7 +34,7 @@ r_score = 0
 #canvas declaration
 window = pygame.display.set_mode((WIDTH, HEIGHT), 0, 32)
 pygame.display.set_caption('Hello World')
-
+reward = 0
 # helper function that spawns a ball, returns a position vector and a velocity vector
 # if right is True, spawn to the right, else spawn to the left
 def ball_init(id):
@@ -65,7 +65,7 @@ def init():
 #draw function of canvas
 def draw(canvas):
     global paddle1_pos, paddle2_pos, ball_pos, ball_vel, l_score, r_score
-           
+    global reward
     canvas.fill(BLACK)
     pygame.draw.line(canvas, WHITE, [WIDTH // 2, 0],[WIDTH // 2, HEIGHT], 1)
     pygame.draw.line(canvas, WHITE, [PAD_WIDTH, 0],[PAD_WIDTH, HEIGHT], 1)
@@ -129,13 +129,16 @@ def draw(canvas):
                 ball_vel[i][0] = -abs(ball_vel[i][0])
                 ball_vel[i][0] *= 1.2
                 ball_vel[i][1] *= 1.2
+                reward -= abs(ball_vel[i][0])
             elif int(ball_pos[i][0]) - BALL_RADIUS + ball_vel[i][0] <= paddle1_pos[q][0] + PAD_WIDTH and int(ball_pos[i][0]) >= paddle1_pos[q][0] + PAD_WIDTH and\
                 int(ball_pos[i][1]) in range(paddle1_pos[q][1] - HALF_PAD_HEIGHT - BALL_RADIUS, paddle1_pos[q][1] + HALF_PAD_HEIGHT,1):
                 ball_vel[i][0] = abs(ball_vel[i][0])
                 ball_vel[i][0] *= 1.2
                 ball_vel[i][1] *= 1.2
+                reward += abs(ball_vel[i][0])
             elif int(ball_pos[i][0]) <= BALL_RADIUS + PAD_WIDTH:
                 r_score += 1
+                reward -= 10
                 ball_init(i)
     
     for i in range(ball_num):
@@ -162,6 +165,10 @@ def draw(canvas):
     myfont2 = pygame.font.SysFont("Comic Sans MS", 20)
     label2 = myfont2.render("Score "+str(r_score), 1, (255,255,0))
     canvas.blit(label2, (470, 20))  
+
+    myfont3 = pygame.font.SysFont("Comic Sans MS", 20)
+    label2 = myfont3.render("reward "+str(reward), 1, (255,255,0))
+    canvas.blit(label2, (670, 20))  
     
     
 #keydown handler
@@ -202,19 +209,19 @@ init()
 
 
 #game loop
-while True:
+# while True:
 
-    draw(window)
+#     draw(window)
 
-    for event in pygame.event.get():
+#     for event in pygame.event.get():
 
-        if event.type == KEYDOWN:
-            keydown(event)
-        elif event.type == KEYUP:
-            keyup(event)
-        elif event.type == QUIT:
-            pygame.quit()
-            sys.exit()
+#         if event.type == KEYDOWN:
+#             keydown(event)
+#         elif event.type == KEYUP:
+#             keyup(event)
+#         elif event.type == QUIT:
+#             pygame.quit()
+#             sys.exit()
             
-    pygame.display.update()
-    fps.tick(60)
+#     pygame.display.update()
+#     fps.tick(60)

@@ -3,8 +3,6 @@ from gym import spaces
 import random
 import pygame, sys
 from pygame.locals import *
-import operator
-import functools
 
 
 class DoublePong:
@@ -19,10 +17,13 @@ class DoublePong:
 	HALF_PAD_HEIGHT = PAD_HEIGHT // 2
 	ball_num = 10
 	colorlist = [RED] * 50
+	action_space = spaces.Discrete(5)
+	observation_space = spaces.Box(np.array([np.float32(0)] * (ball_num * 2 + 2)), np.array([np.float32(0)] * (ball_num * 2 + 2)))
 	def __init__(self, WIDTH = 1000, HEIGHT = 600, ball_num = 10):
 		self.WIDTH = WIDTH
 		self.HEIGHT = HEIGHT
 		self.ball_num = ball_num
+		self.reward = 0
 		self.action_space = spaces.Discrete(5)
 		observation_high = np.array([np.float32(max(WIDTH, HEIGHT))] * (ball_num * 2 + 2))
 		observation_low = np.array([np.float32(0)] * (ball_num * 2 + 2))
@@ -39,7 +40,7 @@ class DoublePong:
 		self.first_show = True
 		self.counter = 0
 		self.reset()
-		pass
+		
 	def reset(self):
 		# global paddle1_pos, paddle2_pos, paddle1_vel, paddle2_vel,l_score,r_score  # these are floats
 		self.paddle1_pos[0] = [DoublePong.HALF_PAD_WIDTH - 1, self.HEIGHT//2]
@@ -48,6 +49,8 @@ class DoublePong:
 		self.paddle2_pos[1] = [self.WIDTH +1 - DoublePong.HALF_PAD_WIDTH - 160, self.HEIGHT//2]
 		self.l_score = 0
 		self.r_score = 0
+		self.counter = 0
+		self.reward = 0
 		for i in range(self.ball_num):
 			self.ball_init(i)
 		observation = []
@@ -74,13 +77,13 @@ class DoublePong:
 		done = False if self.counter < 10800 else True
 		info = []
 		self.counter += 1
-		if action[0] == 1:
+		if action == 1:
 			self.paddle1_vel[0] = 8
-		elif action[0] == 2:
+		elif action == 2:
 			self.paddle1_vel[0] = -8
-		elif action[0] == 3:
+		elif action == 3:
 			self.paddle1_vel[1] = 8
-		elif action[0] == 4:
+		elif action == 4:
 			self.paddle1_vel[1] = -8
 		
 		if self.paddle1_pos[0][1] > DoublePong.HALF_PAD_HEIGHT and self.paddle1_pos[0][1] < self.HEIGHT - DoublePong.HALF_PAD_HEIGHT:
@@ -167,6 +170,7 @@ class DoublePong:
 		observation.append(self.paddle1_pos[0][1])
 		observation.append(self.paddle1_pos[1][1])
 		info = [self.l_score, self.r_score]
+		self.reward += reward
 		return [observation, reward, done, info]
 	def render(self):
 		if self.first_show:
@@ -174,7 +178,7 @@ class DoublePong:
 			self.window = pygame.display.set_mode((self.WIDTH, self.HEIGHT), 0, 32)
 			pygame.display.set_caption('Hello World')
 			self.first_show = False
-		pass
+		pygame.event.get()
 		self.window.fill(DoublePong.BLACK)
 		pygame.draw.line(self.window, self.WHITE, [self.WIDTH // 2, 0],[self.WIDTH // 2, self.HEIGHT], 1)
 		pygame.draw.line(self.window, self.WHITE, [DoublePong.PAD_WIDTH, 0],[DoublePong.PAD_WIDTH, self.HEIGHT], 1)
@@ -195,16 +199,21 @@ class DoublePong:
 		label2 = myfont2.render("Score "+str(self.r_score), 1, (255,255,0))
 		self.window.blit(label2, (470, 20)) 
 		pygame.display.update()
+
+		myfont3 = pygame.font.SysFont("Comic Sans MS", 20)
+		label2 = myfont3.render("reward "+str(self.reward), 1, (255,255,0))
+		canvas.blit(label2, (670, 20))
 	def close(self):
 		if not self.first_show:
 			pygame.quit()
-		pass
-env = DoublePong()
-fps = pygame.time.Clock()
-st = env.reset()
-done = False
-while not done:
-	action = [random.randrange(0,6)]
-	observation, reward, done, info = env.step(action)
-	env.render()
-# 	fps.tick(60)
+		
+# env = DoublePong()
+# fps = pygame.time.Clock()
+# while True:
+# 	st = env.reset()
+# 	done = False
+# 	while not done:
+# 		action = random.randrange(0,6)
+# 		observation, reward, done, info = env.step(action)
+# 		env.render()
+# 		# fps.tick(60)
