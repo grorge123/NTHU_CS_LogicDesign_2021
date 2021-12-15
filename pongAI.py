@@ -41,7 +41,9 @@ def ball_init(id):
     global ball_pos, ball_vel # these are vectors stored as lists
     ball_pos[id] = [WIDTH//2,HEIGHT//2]
     horz = random.randrange(2,4)
-    vert = random.randrange(1,3)
+    vert = random.randrange(-3,3)
+    if vert == 0:
+        vert = vert + 1
     colorlist[id] = (random.randrange(0,255),random.randrange(0,255),random.randrange(0,255))
     if random.randrange(0,2) == 0:
         horz = - horz
@@ -179,33 +181,136 @@ def keydown(event):
         paddle2_vel[0] = -8
     elif event.key == K_DOWN:
         paddle2_vel[0] = 8
-    elif event.key == K_w:
-        paddle1_vel[0] = -8
-    elif event.key == K_s:
-        paddle1_vel[0] = 8
+    # elif event.key == K_w:
+    #     paddle1_vel[0] = -8
+    # elif event.key == K_s:
+    #     paddle1_vel[0] = 8
     elif event.key == K_u:
         paddle2_vel[1] = -8
     elif event.key == K_j:
         paddle2_vel[1] = 8
-    elif event.key == K_y:
-        paddle1_vel[1] = -8
-    elif event.key == K_h:
-        paddle1_vel[1] = 8
+    # elif event.key == K_y:
+    #     paddle1_vel[1] = -8
+    # elif event.key == K_h:
+    #     paddle1_vel[1] = 8
 
 #keyup handler
 def keyup(event):
     global paddle1_vel, paddle2_vel
     
     if event.key in (K_w, K_s):
-        paddle1_vel[0] = 0
+        # paddle1_vel[0] = 0
+        pass
     elif event.key in (K_UP, K_DOWN):
         paddle2_vel[0] = 0
     elif event.key in (K_u, K_j):
         paddle2_vel[1] = 0
-    elif event.key in (K_y, K_h):
-        paddle1_vel[1] = 0
+    # elif event.key in (K_y, K_h):
+        # paddle1_vel[1] = 0
 
 init()
+
+#### PPO begin
+import torch
+import torch.nn as nn
+from torch.distributions import MultivariateNormal
+from torch.distributions import Categorical
+
+device = torch.device('cpu')
+
+if(torch.cuda.is_available()): 
+    device = torch.device('cuda:0') 
+    torch.cuda.empty_cache()
+
+class RolloutBuffer:
+    def __init__(self):
+        self.actions = []
+        self.states = []
+        self.logprobs = []
+        self.rewards = []
+        self.is_terminals = []
+    
+
+    def clear(self):
+        del self.actions[:]
+        del self.states[:]
+        del self.logprobs[:]
+        del self.rewards[:]
+        del self.is_terminals[:]
+
+class ActorCritic(nn.Module):
+    def __init__(self, state_dim, action_dim, action_std_init):
+        super(ActorCritic, self).__init__()
+
+        
+        self.actor = nn.Sequential(
+                        nn.Linear(state_dim, 64),
+                        nn.ReLU(),
+                        nn.Linear(64, 64),
+                        nn.ReLU(),
+                        nn.Linear(64, action_dim),
+                        nn.Softmax(dim=-1)
+                    )
+
+        
+        # critic
+        self.critic = nn.Sequential(
+                        nn.Linear(state_dim, 64),
+                        nn.ReLU(),
+                        nn.Linear(64, 64),
+                        nn.ReLU(),
+                        nn.Linear(64, 1)
+                    )
+
+    def act(self, state):
+
+        
+        action_probs = self.actor(state)
+        dist = Categorical(action_probs)
+
+        action = dist.sample()
+        action_logprob = dist.log_prob(action)
+        
+        return action.detach(), action_logprob.detach()
+    
+
+
+class PPO:
+    def __init__(self, state_dim, action_dim, lr_actor, lr_critic, gamma, K_epochs, eps_clip, action_std_init=0.6):
+
+        self.gamma = gamma
+        self.eps_clip = eps_clip
+        self.K_epochs = K_epochs
+
+        self.policy = ActorCritic(state_dim, action_dim, action_std_init).to(device)
+
+        self.policy_old = ActorCritic(state_dim, action_dim, action_std_init).to(device)
+        self.policy_old.load_state_dict(self.policy.state_dict())
+        self.buffer = RolloutBuffer()
+
+
+    def select_action(self, state):
+
+        with torch.no_grad():
+            state = torch.FloatTensor(state).to(device)
+            action, action_logprob = self.policy_old.act(state)
+
+        self.buffer.states.append(state)
+        self.buffer.actions.append(action)
+        self.buffer.logprobs.append(action_logprob)
+
+        return action.item()
+
+    def load(self, checkpoint_path):
+        self.policy_old.load_state_dict(torch.load(checkpoint_path, map_location=lambda storage, loc: storage))
+        self.policy.load_state_dict(torch.load(checkpoint_path, map_location=lambda storage, loc: storage))
+        
+ppo_agent = PPO(22, 5, 0, 0, 0, 0, 0, None)
+import os
+checkpoint_path = ".\\PPO_preTrained\\pong_game\\PPO_pong_game_38_0.pth"
+ppo_agent.load(checkpoint_path)
+
+#### PPO end
 
 
 #game loop
@@ -214,7 +319,21 @@ while True:
     draw(window)
 
     for event in pygame.event.get():
-
+        state = []
+        for i in range(ball_num):
+            state.append(ball_pos[i][0])
+            state.append(ball_pos[i][1])
+        state.append(paddle1_pos[0][1])
+        state.append(paddle1_pos[1][1])
+        action = ppo_agent.select_action(state)
+        if action == 1:
+            paddle1_vel[0] = 8
+        elif action == 2:
+            paddle1_vel[0] = -8
+        elif action == 3:
+            paddle1_vel[1] = 8
+        elif action == 4:
+            paddle1_vel[1] = -8
         if event.type == KEYDOWN:
             keydown(event)
         elif event.type == KEYUP:

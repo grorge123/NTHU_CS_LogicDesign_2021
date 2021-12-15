@@ -25,8 +25,8 @@ class DoublePong:
 		self.ball_num = ball_num
 		self.reward = 0
 		self.action_space = spaces.Discrete(5)
-		observation_high = np.array([np.float32(max(WIDTH, HEIGHT))] * (ball_num * 2 + 2))
-		observation_low = np.array([np.float32(0)] * (ball_num * 2 + 2))
+		observation_high = np.array([np.float32(max(WIDTH, HEIGHT))] * (ball_num * 4 + 2))
+		observation_low = np.array([np.float32(0)] * (ball_num * 4 + 2))
 		self.observation_space = spaces.Box(observation_low, observation_high)
 		self.ball_pos = [[0,0]] * ball_num
 		self.ball_vel = [[0,0]] * ball_num
@@ -57,6 +57,8 @@ class DoublePong:
 		for i in range(self.ball_num):
 			observation.append(self.ball_pos[i][0])
 			observation.append(self.ball_pos[i][1])
+			observation.append(self.ball_vel[i][0])
+			observation.append(self.ball_vel[i][1])
 		observation.append(self.paddle1_pos[0][1])
 		observation.append(self.paddle1_pos[1][1])
 		return observation
@@ -167,6 +169,8 @@ class DoublePong:
 		for i in range(self.ball_num):
 			observation.append(self.ball_pos[i][0])
 			observation.append(self.ball_pos[i][1])
+			observation.append(self.ball_vel[i][0])
+			observation.append(self.ball_vel[i][1])
 		observation.append(self.paddle1_pos[0][1])
 		observation.append(self.paddle1_pos[1][1])
 		info = [self.l_score, self.r_score]
@@ -202,7 +206,7 @@ class DoublePong:
 
 		myfont3 = pygame.font.SysFont("Comic Sans MS", 20)
 		label2 = myfont3.render("reward "+str(self.reward), 1, (255,255,0))
-		canvas.blit(label2, (670, 20))
+		self.window.blit(label2, (670, 20))
 	def close(self):
 		if not self.first_show:
 			pygame.quit()
@@ -215,5 +219,5 @@ class DoublePong:
 # 	while not done:
 # 		action = random.randrange(0,6)
 # 		observation, reward, done, info = env.step(action)
-# 		env.render()
+# 		# env.render()
 # 		# fps.tick(60)
