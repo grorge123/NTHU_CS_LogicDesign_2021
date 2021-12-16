@@ -1,0 +1,7 @@
+WIDTH = 320
+HEIGHT = 240       
+BALL_RADIUS = 3
+PAD_WIDTH = 4
+PAD_HEIGHT = 40
+ball_num = 5
+PAD_SPACE = 60

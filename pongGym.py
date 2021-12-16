@@ -3,23 +3,24 @@ from gym import spaces
 import random
 import pygame, sys
 from pygame.locals import *
-
+import pong_config
 
 class DoublePong:
 	WHITE = (255,255,255)
 	RED = (255,0,0)
 	GREEN = (0,255,0)
 	BLACK = (0,0,0)
-	PAD_WIDTH = 8
-	PAD_HEIGHT = 80
-	BALL_RADIUS = 10
+	PAD_WIDTH = pong_config.PAD_WIDTH
+	PAD_HEIGHT = pong_config.PAD_HEIGHT
+	BALL_RADIUS = pong_config.BALL_RADIUS
+	PAD_SPACE = pong_config.PAD_SPACE
 	HALF_PAD_WIDTH = PAD_WIDTH // 2
 	HALF_PAD_HEIGHT = PAD_HEIGHT // 2
-	ball_num = 5
+	ball_num = pong_config.ball_num
 	colorlist = [RED] * 50
 	action_space = spaces.Discrete(4)
 	observation_space = spaces.Box(np.array([np.float32(0)] * (ball_num * 4 + 2)), np.array([np.float32(0)] * (ball_num * 4 + 2)))
-	def __init__(self, WIDTH = 320, HEIGHT = 240, ball_num = 5):
+	def __init__(self, WIDTH = pong_config.WIDTH, HEIGHT = pong_config.HEIGHT, ball_num = pong_config.ball_num):
 		self.WIDTH = WIDTH
 		self.HEIGHT = HEIGHT
 		self.ball_num = ball_num
@@ -45,8 +46,8 @@ class DoublePong:
 		# global paddle1_pos, paddle2_pos, paddle1_vel, paddle2_vel,l_score,r_score  # these are floats
 		self.paddle1_pos[0] = [DoublePong.HALF_PAD_WIDTH - 1, self.HEIGHT//2]
 		self.paddle2_pos[0] = [self.WIDTH +1 - DoublePong.HALF_PAD_WIDTH, self.HEIGHT//2]
-		self.paddle1_pos[1] = [DoublePong.HALF_PAD_WIDTH - 1 + 160, self.HEIGHT//2]
-		self.paddle2_pos[1] = [self.WIDTH +1 - DoublePong.HALF_PAD_WIDTH - 160, self.HEIGHT//2]
+		self.paddle1_pos[1] = [DoublePong.HALF_PAD_WIDTH - 1 + DoublePong.PAD_SPACE, self.HEIGHT//2]
+		self.paddle2_pos[1] = [self.WIDTH +1 - DoublePong.HALF_PAD_WIDTH - DoublePong.PAD_SPACE, self.HEIGHT//2]
 		self.l_score = 0
 		self.r_score = 0
 		self.counter = 0
@@ -198,27 +199,27 @@ class DoublePong:
 		#update scores
 		myfont1 = pygame.font.SysFont("Comic Sans MS", 20)
 		label1 = myfont1.render("Score "+str(self.l_score), 1, (255,255,0))
-		self.window.blit(label1, (50,20))
+		self.window.blit(label1, (10,20))
 
 		myfont2 = pygame.font.SysFont("Comic Sans MS", 20)
 		label2 = myfont2.render("Score "+str(self.r_score), 1, (255,255,0))
-		self.window.blit(label2, (470, 20)) 
-		pygame.display.update()
+		self.window.blit(label2, (100, 20)) 
 
 		myfont3 = pygame.font.SysFont("Comic Sans MS", 20)
-		label2 = myfont3.render("reward "+str(self.reward), 1, (255,255,0))
-		self.window.blit(label2, (670, 20))
+		label2 = myfont3.render("reward "+str(int(self.reward)), 1, (255,255,0))
+		self.window.blit(label2, (190, 20))
+		pygame.display.update()
 	def close(self):
 		if not self.first_show:
 			pygame.quit()
 		
-# env = DoublePong()
-# fps = pygame.time.Clock()
-# while True:
-# 	st = env.reset()
-# 	done = False
-# 	while not done:
-# 		action = random.randrange(0,6)
-# 		observation, reward, done, info = env.step(action)
-# 		# env.render()
+env = DoublePong()
+fps = pygame.time.Clock()
+while True:
+	st = env.reset()
+	done = False
+	while not done:
+		action = random.randrange(0,6)
+		observation, reward, done, info = env.step(action)
+		env.render()
 # 		# fps.tick(60)

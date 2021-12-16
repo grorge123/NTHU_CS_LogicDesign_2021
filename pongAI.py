@@ -3,6 +3,7 @@
 import random
 import pygame, sys
 from pygame.locals import *
+import pong_config
 
 pygame.init()
 fps = pygame.time.Clock()
@@ -13,14 +14,15 @@ RED = (255,0,0)
 GREEN = (0,255,0)
 BLACK = (0,0,0)
 #globals
-WIDTH = 1000
-HEIGHT = 600       
-BALL_RADIUS = 10
-PAD_WIDTH = 8
-PAD_HEIGHT = 80
+WIDTH = pong_config.WIDTH
+HEIGHT = pong_config.HEIGHT       
+BALL_RADIUS = pong_config.BALL_RADIUS
+PAD_WIDTH = pong_config.PAD_WIDTH
+PAD_HEIGHT = pong_config.PAD_HEIGHT
+PAD_SPACE = pong_config.PAD_SPACE
 HALF_PAD_WIDTH = PAD_WIDTH // 2
 HALF_PAD_HEIGHT = PAD_HEIGHT // 2
-ball_num = 10
+ball_num = pong_config.ball_num
 colorlist = [RED] * ball_num
 ball_pos = [[0,0]] * ball_num
 ball_vel = [[0,0]] * ball_num
@@ -56,8 +58,8 @@ def init():
     global score1, score2  # these are ints
     paddle1_pos[0] = [HALF_PAD_WIDTH - 1,HEIGHT//2]
     paddle2_pos[0] = [WIDTH +1 - HALF_PAD_WIDTH,HEIGHT//2]
-    paddle1_pos[1] = [HALF_PAD_WIDTH - 1 + 160,HEIGHT//2]
-    paddle2_pos[1] = [WIDTH +1 - HALF_PAD_WIDTH - 160,HEIGHT//2]
+    paddle1_pos[1] = [HALF_PAD_WIDTH - 1 + PAD_SPACE,HEIGHT//2]
+    paddle2_pos[1] = [WIDTH +1 - HALF_PAD_WIDTH - PAD_SPACE,HEIGHT//2]
     l_score = 0
     r_score = 0
     for i in range(ball_num):
@@ -162,15 +164,15 @@ def draw(canvas):
     #update scores
     myfont1 = pygame.font.SysFont("Comic Sans MS", 20)
     label1 = myfont1.render("Score "+str(l_score), 1, (255,255,0))
-    canvas.blit(label1, (50,20))
+    canvas.blit(label1, (10,20))
 
     myfont2 = pygame.font.SysFont("Comic Sans MS", 20)
     label2 = myfont2.render("Score "+str(r_score), 1, (255,255,0))
-    canvas.blit(label2, (470, 20))  
+    canvas.blit(label2, (100, 20)) 
 
     myfont3 = pygame.font.SysFont("Comic Sans MS", 20)
-    label2 = myfont3.render("reward "+str(reward), 1, (255,255,0))
-    canvas.blit(label2, (670, 20))  
+    label2 = myfont3.render("reward "+str(int(reward)), 1, (255,255,0))
+    canvas.blit(label2, (190, 20))  
     
     
 #keydown handler
@@ -309,7 +311,7 @@ class PPO:
         self.policy_old.load_state_dict(torch.load(checkpoint_path, map_location=lambda storage, loc: storage))
         self.policy.load_state_dict(torch.load(checkpoint_path, map_location=lambda storage, loc: storage))
         
-ppo_agent = PPO(42, 4, 0, 0, 0, 0, 0, None)
+ppo_agent = PPO(ball_num * 4 + 2, 4, 0, 0, 0, 0, 0, None)
 import os
 checkpoint_path = "PPO_pong_game_243_0.pth"
 # checkpoint_path = "./PPO_preTrained/pong_game/PPO_pong_game_1798_0.pth"
