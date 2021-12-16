@@ -15,11 +15,11 @@ class DoublePong:
 	BALL_RADIUS = 10
 	HALF_PAD_WIDTH = PAD_WIDTH // 2
 	HALF_PAD_HEIGHT = PAD_HEIGHT // 2
-	ball_num = 10
+	ball_num = 5
 	colorlist = [RED] * 50
 	action_space = spaces.Discrete(4)
 	observation_space = spaces.Box(np.array([np.float32(0)] * (ball_num * 4 + 2)), np.array([np.float32(0)] * (ball_num * 4 + 2)))
-	def __init__(self, WIDTH = 1000, HEIGHT = 600, ball_num = 10):
+	def __init__(self, WIDTH = 320, HEIGHT = 240, ball_num = 5):
 		self.WIDTH = WIDTH
 		self.HEIGHT = HEIGHT
 		self.ball_num = ball_num
@@ -154,12 +154,12 @@ class DoublePong:
 		for i in range(self.ball_num):
 			for q in range(2):
 				if int(self.ball_pos[i][0]) + DoublePong.BALL_RADIUS + self.ball_vel[i][0] >= self.paddle2_pos[q][0] - DoublePong.PAD_WIDTH and self.ball_pos[i][0] <= self.paddle2_pos[q][0] - DoublePong.PAD_WIDTH and\
-					int(self.ball_pos[i][1]) >= self.paddle2_pos[q][1] - DoublePong.HALF_PAD_HEIGHT - DoublePong.BALL_RADIUS and int(self.ball_pos[i][1]) >= self.paddle2_pos[q][1] + DoublePong.HALF_PAD_HEIGHT:
+					int(self.ball_pos[i][1]) >= self.paddle2_pos[q][1] - DoublePong.HALF_PAD_HEIGHT - DoublePong.BALL_RADIUS and int(self.ball_pos[i][1]) <= self.paddle2_pos[q][1] + DoublePong.HALF_PAD_HEIGHT:
 					self.ball_vel[i][0] = -(self.ball_vel[i][0])
 					self.ball_vel[i][0] *= 1.2
 					self.ball_vel[i][1] *= 1.2
 				elif int(self.ball_pos[i][0]) - DoublePong.BALL_RADIUS + self.ball_vel[i][0] <= self.paddle2_pos[q][0] + DoublePong.PAD_WIDTH and self.ball_pos[i][0] >= self.paddle2_pos[q][0] + DoublePong.PAD_WIDTH and\
-					int(self.ball_pos[i][1]) <= self.paddle2_pos[q][1] - DoublePong.HALF_PAD_HEIGHT - DoublePong.BALL_RADIUS and int(self.ball_pos[i][1]) >= self.paddle2_pos[q][1] + DoublePong.HALF_PAD_HEIGHT:
+					int(self.ball_pos[i][1]) >= self.paddle2_pos[q][1] - DoublePong.HALF_PAD_HEIGHT - DoublePong.BALL_RADIUS and int(self.ball_pos[i][1]) <= self.paddle2_pos[q][1] + DoublePong.HALF_PAD_HEIGHT:
 					self.ball_vel[i][0] = abs(self.ball_vel[i][0])
 					self.ball_vel[i][0] *= 1.2
 					self.ball_vel[i][1] *= 1.2
