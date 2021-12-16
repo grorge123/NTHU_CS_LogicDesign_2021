@@ -17,14 +17,14 @@ class DoublePong:
 	HALF_PAD_HEIGHT = PAD_HEIGHT // 2
 	ball_num = 10
 	colorlist = [RED] * 50
-	action_space = spaces.Discrete(5)
-	observation_space = spaces.Box(np.array([np.float32(0)] * (ball_num * 2 + 2)), np.array([np.float32(0)] * (ball_num * 2 + 2)))
+	action_space = spaces.Discrete(4)
+	observation_space = spaces.Box(np.array([np.float32(0)] * (ball_num * 4 + 2)), np.array([np.float32(0)] * (ball_num * 4 + 2)))
 	def __init__(self, WIDTH = 1000, HEIGHT = 600, ball_num = 10):
 		self.WIDTH = WIDTH
 		self.HEIGHT = HEIGHT
 		self.ball_num = ball_num
 		self.reward = 0
-		self.action_space = spaces.Discrete(5)
+		self.action_space = spaces.Discrete(4)
 		observation_high = np.array([np.float32(max(WIDTH, HEIGHT))] * (ball_num * 4 + 2))
 		observation_low = np.array([np.float32(0)] * (ball_num * 4 + 2))
 		self.observation_space = spaces.Box(observation_low, observation_high)
@@ -79,6 +79,7 @@ class DoublePong:
 		done = False if self.counter < 10800 else True
 		info = []
 		self.counter += 1
+		action += 1
 		if action == 1:
 			self.paddle1_vel[0] = 8
 		elif action == 2:
@@ -138,13 +139,13 @@ class DoublePong:
 					self.ball_vel[i][0] = -abs(self.ball_vel[i][0])
 					self.ball_vel[i][0] *= 1.2
 					self.ball_vel[i][1] *= 1.2
-					reward -= abs(self.ball_vel[i][0])
+					reward -= 5 + abs(self.ball_vel[i][0])
 				elif int(self.ball_pos[i][0]) - DoublePong.BALL_RADIUS + self.ball_vel[i][0] <= self.paddle1_pos[q][0] + DoublePong.PAD_WIDTH and int(self.ball_pos[i][0]) >= self.paddle1_pos[q][0] + DoublePong.PAD_WIDTH and\
 					int(self.ball_pos[i][1]) >= self.paddle1_pos[q][1] - DoublePong.HALF_PAD_HEIGHT - DoublePong.BALL_RADIUS and int(self.ball_pos[i][1]) <= self.paddle1_pos[q][1] + DoublePong.HALF_PAD_HEIGHT:
 					self.ball_vel[i][0] = abs(self.ball_vel[i][0])
 					self.ball_vel[i][0] *= 1.2
 					self.ball_vel[i][1] *= 1.2
-					reward += abs(self.ball_vel[i][0])
+					reward += 5 + abs(self.ball_vel[i][0])
 				elif int(self.ball_pos[i][0]) <= DoublePong.BALL_RADIUS + DoublePong.PAD_WIDTH:
 					self.r_score += 1
 					reward -= 10

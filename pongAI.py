@@ -244,22 +244,26 @@ class ActorCritic(nn.Module):
 
         
         self.actor = nn.Sequential(
-                        nn.Linear(state_dim, 64),
+                        nn.Linear(state_dim, 128),
                         nn.ReLU(),
-                        nn.Linear(64, 64),
+                        nn.Linear(128, 128),
                         nn.ReLU(),
-                        nn.Linear(64, action_dim),
+                        nn.Linear(128, 128),
+                        nn.ReLU(),
+                        nn.Linear(128, action_dim),
                         nn.Softmax(dim=-1)
                     )
 
         
         # critic
         self.critic = nn.Sequential(
-                        nn.Linear(state_dim, 64),
+                        nn.Linear(state_dim, 128),
                         nn.ReLU(),
-                        nn.Linear(64, 64),
+                        nn.Linear(128, 128),
                         nn.ReLU(),
-                        nn.Linear(64, 1)
+                        nn.Linear(128, 128),
+                        nn.ReLU(),
+                        nn.Linear(128, 1)
                     )
 
     def act(self, state):
@@ -305,9 +309,10 @@ class PPO:
         self.policy_old.load_state_dict(torch.load(checkpoint_path, map_location=lambda storage, loc: storage))
         self.policy.load_state_dict(torch.load(checkpoint_path, map_location=lambda storage, loc: storage))
         
-ppo_agent = PPO(22, 5, 0, 0, 0, 0, 0, None)
+ppo_agent = PPO(42, 4, 0, 0, 0, 0, 0, None)
 import os
-checkpoint_path = ".\\PPO_preTrained\\pong_game\\PPO_pong_game_38_0.pth"
+checkpoint_path = ".\\PPO_preTrained\\pong_game\\PPO_pong_game_681_0.pth"
+checkpoint_path = "./PPO_preTrained/pong_game/PPO_pong_game_1798_0.pth"
 ppo_agent.load(checkpoint_path)
 
 #### PPO end
@@ -323,9 +328,12 @@ while True:
         for i in range(ball_num):
             state.append(ball_pos[i][0])
             state.append(ball_pos[i][1])
+            state.append(ball_vel[i][0])
+            state.append(ball_vel[i][1])
         state.append(paddle1_pos[0][1])
         state.append(paddle1_pos[1][1])
         action = ppo_agent.select_action(state)
+        action += 1
         if action == 1:
             paddle1_vel[0] = 8
         elif action == 2:
