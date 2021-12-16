@@ -1,4 +1,5 @@
 PPO_logs\pong_game\*.csv
 PPO_preTrained\pong_game\*
+PPO_preTrained\pong_game\*.pth
 __pycache__
 .ipynb_checkpoints

@@ -127,17 +127,17 @@ def draw(canvas):
     for i in range(ball_num):
         for q in range(2):
             if int(ball_pos[i][0]) + BALL_RADIUS + ball_vel[i][0] >= paddle1_pos[q][0] - PAD_WIDTH and int(ball_pos[i][0]) <= paddle1_pos[q][0] - PAD_WIDTH and\
-                 int(ball_pos[i][1]) in range(paddle1_pos[q][1] - HALF_PAD_HEIGHT - BALL_RADIUS, paddle1_pos[q][1] + HALF_PAD_HEIGHT,1):
+                 int(ball_pos[i][1]) >= paddle1_pos[q][1] - HALF_PAD_HEIGHT - BALL_RADIUS and int(ball_pos[i][1]) <= paddle1_pos[q][1] + HALF_PAD_HEIGHT:
                 ball_vel[i][0] = -abs(ball_vel[i][0])
                 ball_vel[i][0] *= 1.2
                 ball_vel[i][1] *= 1.2
-                reward -= abs(ball_vel[i][0])
+                reward -= 5 + abs(ball_vel[i][0])
             elif int(ball_pos[i][0]) - BALL_RADIUS + ball_vel[i][0] <= paddle1_pos[q][0] + PAD_WIDTH and int(ball_pos[i][0]) >= paddle1_pos[q][0] + PAD_WIDTH and\
-                int(ball_pos[i][1]) in range(paddle1_pos[q][1] - HALF_PAD_HEIGHT - BALL_RADIUS, paddle1_pos[q][1] + HALF_PAD_HEIGHT,1):
+                int(ball_pos[i][1]) >= paddle1_pos[q][1] - HALF_PAD_HEIGHT - BALL_RADIUS and int(ball_pos[i][1]) <= paddle1_pos[q][1] + HALF_PAD_HEIGHT:
                 ball_vel[i][0] = abs(ball_vel[i][0])
                 ball_vel[i][0] *= 1.2
                 ball_vel[i][1] *= 1.2
-                reward += abs(ball_vel[i][0])
+                reward += 5 + abs(ball_vel[i][0])
             elif int(ball_pos[i][0]) <= BALL_RADIUS + PAD_WIDTH:
                 r_score += 1
                 reward -= 10
@@ -146,12 +146,12 @@ def draw(canvas):
     for i in range(ball_num):
         for q in range(2):
             if int(ball_pos[i][0]) + BALL_RADIUS + ball_vel[i][0] >= paddle2_pos[q][0] - PAD_WIDTH and ball_pos[i][0] <= paddle2_pos[q][0] - PAD_WIDTH and\
-                 int(ball_pos[i][1]) in range(paddle2_pos[q][1] - HALF_PAD_HEIGHT - BALL_RADIUS, paddle2_pos[q][1] + HALF_PAD_HEIGHT,1):
+                 int(ball_pos[i][1]) >= paddle2_pos[q][1] - HALF_PAD_HEIGHT - BALL_RADIUS and int(ball_pos[i][1]) >= paddle2_pos[q][1] + HALF_PAD_HEIGHT:
                 ball_vel[i][0] = -(ball_vel[i][0])
                 ball_vel[i][0] *= 1.2
                 ball_vel[i][1] *= 1.2
             elif int(ball_pos[i][0]) - BALL_RADIUS + ball_vel[i][0] <= paddle2_pos[q][0] + PAD_WIDTH and ball_pos[i][0] >= paddle2_pos[q][0] + PAD_WIDTH and\
-                int(ball_pos[i][1]) in range(paddle2_pos[q][1] - HALF_PAD_HEIGHT - BALL_RADIUS, paddle2_pos[q][1] + HALF_PAD_HEIGHT,1):
+                int(ball_pos[i][1]) <= paddle2_pos[q][1] - HALF_PAD_HEIGHT - BALL_RADIUS and int(ball_pos[i][1]) >= paddle2_pos[q][1] + HALF_PAD_HEIGHT:
                 ball_vel[i][0] = abs(ball_vel[i][0])
                 ball_vel[i][0] *= 1.2
                 ball_vel[i][1] *= 1.2
@@ -311,8 +311,8 @@ class PPO:
         
 ppo_agent = PPO(42, 4, 0, 0, 0, 0, 0, None)
 import os
-checkpoint_path = ".\\PPO_preTrained\\pong_game\\PPO_pong_game_681_0.pth"
-checkpoint_path = "./PPO_preTrained/pong_game/PPO_pong_game_1798_0.pth"
+checkpoint_path = "PPO_pong_game_243_0.pth"
+# checkpoint_path = "./PPO_preTrained/pong_game/PPO_pong_game_1798_0.pth"
 ppo_agent.load(checkpoint_path)
 
 #### PPO end
