@@ -19,7 +19,7 @@ class DoublePong:
 	ball_num = pong_config.ball_num
 	colorlist = [RED] * 50
 	action_space = spaces.Discrete(4)
-	observation_space = spaces.Box(np.array([np.float32(0)] * (ball_num * 4 + 2)), np.array([np.float32(0)] * (ball_num * 4 + 2)))
+	observation_space = spaces.Box(np.array([np.float32(-320)] * (ball_num * 4 + 2)), np.array([np.float32(pong_config.WIDTH)] * (ball_num * 4 + 2)))
 	def __init__(self, WIDTH = pong_config.WIDTH, HEIGHT = pong_config.HEIGHT, ball_num = pong_config.ball_num):
 		self.WIDTH = WIDTH
 		self.HEIGHT = HEIGHT
@@ -27,7 +27,7 @@ class DoublePong:
 		self.reward = 0
 		self.action_space = spaces.Discrete(4)
 		observation_high = np.array([np.float32(max(WIDTH, HEIGHT))] * (ball_num * 4 + 2))
-		observation_low = np.array([np.float32(0)] * (ball_num * 4 + 2))
+		observation_low = np.array([np.float32(-max(WIDTH, HEIGHT))] * (ball_num * 4 + 2))
 		self.observation_space = spaces.Box(observation_low, observation_high)
 		self.ball_pos = [[0,0]] * ball_num
 		self.ball_vel = [[0,0]] * ball_num
@@ -175,7 +175,7 @@ class DoublePong:
 			observation.append(self.ball_vel[i][1])
 		observation.append(self.paddle1_pos[0][1])
 		observation.append(self.paddle1_pos[1][1])
-		info = [self.l_score, self.r_score]
+		info = {"l_score":self.l_score, "r_score":self.r_score}
 		self.reward += reward
 		return [observation, reward, done, info]
 	def render(self):
@@ -213,13 +213,13 @@ class DoublePong:
 		if not self.first_show:
 			pygame.quit()
 		
-env = DoublePong()
-fps = pygame.time.Clock()
-while True:
-	st = env.reset()
-	done = False
-	while not done:
-		action = random.randrange(0,6)
-		observation, reward, done, info = env.step(action)
-		env.render()
+# env = DoublePong()
+# fps = pygame.time.Clock()
+# while True:
+# 	st = env.reset()
+# 	done = False
+# 	while not done:
+# 		action = random.randrange(0,6)
+# 		observation, reward, done, info = env.step(action)
+# 		env.render()
 # 		# fps.tick(60)
