@@ -19,15 +19,15 @@ class DoublePong:
 	ball_num = pong_config.ball_num
 	colorlist = [RED] * 50
 	action_space = spaces.Discrete(4)
-	observation_space = spaces.Box(np.array([np.float32(-320)] * (ball_num * 4 + 2)), np.array([np.float32(pong_config.WIDTH)] * (ball_num * 4 + 2)))
+	observation_space = spaces.Box(np.array([np.float32(-320)] * (ball_num * 4 + 6)), np.array([np.float32(pong_config.WIDTH)] * (ball_num * 4 + 6)))
 	def __init__(self, WIDTH = pong_config.WIDTH, HEIGHT = pong_config.HEIGHT, ball_num = pong_config.ball_num):
 		self.WIDTH = WIDTH
 		self.HEIGHT = HEIGHT
 		self.ball_num = ball_num
 		self.reward = 0
 		self.action_space = spaces.Discrete(4)
-		observation_high = np.array([np.float32(max(WIDTH, HEIGHT))] * (ball_num * 4 + 2))
-		observation_low = np.array([np.float32(-max(WIDTH, HEIGHT))] * (ball_num * 4 + 2))
+		observation_high = np.array([np.float32(max(WIDTH, HEIGHT))] * (ball_num * 4 + 6))
+		observation_low = np.array([np.float32(-max(WIDTH, HEIGHT))] * (ball_num * 4 + 6))
 		self.observation_space = spaces.Box(observation_low, observation_high)
 		self.ball_pos = [[0,0]] * ball_num
 		self.ball_vel = [[0,0]] * ball_num
@@ -60,8 +60,12 @@ class DoublePong:
 			observation.append(self.ball_pos[i][1])
 			observation.append(self.ball_vel[i][0])
 			observation.append(self.ball_vel[i][1])
+		observation.append(self.paddle1_pos[0][0])
 		observation.append(self.paddle1_pos[0][1])
+		observation.append(self.paddle1_pos[1][0])
 		observation.append(self.paddle1_pos[1][1])
+		observation.append(0)
+		observation.append(0)
 		return observation
 	def ball_init(self, id):
 		self.ball_pos[id] = [self.WIDTH//2,self.HEIGHT//2]
@@ -155,12 +159,14 @@ class DoublePong:
 		for i in range(self.ball_num):
 			for q in range(2):
 				if int(self.ball_pos[i][0]) + DoublePong.BALL_RADIUS + self.ball_vel[i][0] >= self.paddle2_pos[q][0] - DoublePong.PAD_WIDTH and self.ball_pos[i][0] <= self.paddle2_pos[q][0] - DoublePong.PAD_WIDTH and\
-					int(self.ball_pos[i][1]) >= self.paddle2_pos[q][1] - DoublePong.HALF_PAD_HEIGHT - DoublePong.BALL_RADIUS and int(self.ball_pos[i][1]) <= self.paddle2_pos[q][1] + DoublePong.HALF_PAD_HEIGHT:
+					random.randrange(1, 20) < 9:
+					# int(self.ball_pos[i][1]) >= self.paddle2_pos[q][1] - DoublePong.HALF_PAD_HEIGHT - DoublePong.BALL_RADIUS and int(self.ball_pos[i][1]) <= self.paddle2_pos[q][1] + DoublePong.HALF_PAD_HEIGHT:
 					self.ball_vel[i][0] = -(self.ball_vel[i][0])
 					self.ball_vel[i][0] *= 1.2
 					self.ball_vel[i][1] *= 1.2
 				elif int(self.ball_pos[i][0]) - DoublePong.BALL_RADIUS + self.ball_vel[i][0] <= self.paddle2_pos[q][0] + DoublePong.PAD_WIDTH and self.ball_pos[i][0] >= self.paddle2_pos[q][0] + DoublePong.PAD_WIDTH and\
-					int(self.ball_pos[i][1]) >= self.paddle2_pos[q][1] - DoublePong.HALF_PAD_HEIGHT - DoublePong.BALL_RADIUS and int(self.ball_pos[i][1]) <= self.paddle2_pos[q][1] + DoublePong.HALF_PAD_HEIGHT:
+					random.randrange(1, 20) < 19:
+					# int(self.ball_pos[i][1]) >= self.paddle2_pos[q][1] - DoublePong.HALF_PAD_HEIGHT - DoublePong.BALL_RADIUS and int(self.ball_pos[i][1]) <= self.paddle2_pos[q][1] + DoublePong.HALF_PAD_HEIGHT:
 					self.ball_vel[i][0] = abs(self.ball_vel[i][0])
 					self.ball_vel[i][0] *= 1.2
 					self.ball_vel[i][1] *= 1.2
@@ -173,8 +179,20 @@ class DoublePong:
 			observation.append(self.ball_pos[i][1])
 			observation.append(self.ball_vel[i][0])
 			observation.append(self.ball_vel[i][1])
+		observation.append(self.paddle1_pos[0][0])
 		observation.append(self.paddle1_pos[0][1])
+		observation.append(self.paddle1_pos[1][0])
 		observation.append(self.paddle1_pos[1][1])
+		observation.append(0)
+		observation.append(0)
+		minp = min(list(map((lambda x: x if x > self.paddle1_pos[0][0] else 100000),self.ball_pos[:][0])))
+		for i in range(self.ball_num):
+			if self.ball_pos[i][0] == minp:
+				observation[-2] = (2 if self.ball_pos[i][1] > self.paddle1_pos[0][1] else 1 )
+		minp = min(list(map((lambda x: x if x > self.paddle1_pos[1][0] else 100000),self.ball_pos[:][0])))
+		for i in range(self.ball_num):
+			if self.ball_pos[i][0] == minp:
+				observation[-1] = (3 if self.ball_pos[i][1] > self.paddle1_pos[1][1] else 4 )
 		info = {"l_score":self.l_score, "r_score":self.r_score}
 		self.reward += reward
 		return [observation, reward, done, info]
