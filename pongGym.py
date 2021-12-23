@@ -19,15 +19,15 @@ class DoublePong:
 	ball_num = pong_config.ball_num
 	colorlist = [RED] * 50
 	action_space = spaces.Discrete(4)
-	observation_space = spaces.Box(np.array([np.float32(-320)] * (ball_num * 4 + 6)), np.array([np.float32(pong_config.WIDTH)] * (ball_num * 4 + 6)))
+	observation_space = spaces.Box(np.array([np.float32(-320)] * (ball_num * 4 + 4)), np.array([np.float32(pong_config.WIDTH)] * (ball_num * 4 + 4)))
 	def __init__(self, WIDTH = pong_config.WIDTH, HEIGHT = pong_config.HEIGHT, ball_num = pong_config.ball_num):
 		self.WIDTH = WIDTH
 		self.HEIGHT = HEIGHT
 		self.ball_num = ball_num
 		self.reward = 0
 		self.action_space = spaces.Discrete(4)
-		observation_high = np.array([np.float32(max(WIDTH, HEIGHT))] * (ball_num * 4 + 6))
-		observation_low = np.array([np.float32(-max(WIDTH, HEIGHT))] * (ball_num * 4 + 6))
+		observation_high = np.array([np.float32(max(WIDTH, HEIGHT))] * (ball_num * 4 + 4))
+		observation_low = np.array([np.float32(-max(WIDTH, HEIGHT))] * (ball_num * 4 + 4))
 		self.observation_space = spaces.Box(observation_low, observation_high)
 		self.ball_pos = [[0,0]] * ball_num
 		self.ball_vel = [[0,0]] * ball_num
@@ -40,6 +40,9 @@ class DoublePong:
 		self.r_score = 0
 		self.first_show = True
 		self.counter = 0
+		self.horz = 2
+		self.vert = -3
+		self.defense = 0
 		self.reset()
 		
 	def reset(self):
@@ -64,20 +67,21 @@ class DoublePong:
 		observation.append(self.paddle1_pos[0][1])
 		observation.append(self.paddle1_pos[1][0])
 		observation.append(self.paddle1_pos[1][1])
-		observation.append(0)
-		observation.append(0)
 		return observation
 	def ball_init(self, id):
 		self.ball_pos[id] = [self.WIDTH//2,self.HEIGHT//2]
-		horz = random.randrange(2,4)
-		vert = random.randrange(-3,3)
-		if vert == 0:
-			vert = vert + 1
+# 		horz = random.randrange(2,4)
+# 		vert = random.randrange(-3,3)
+		self.horz = self.horz + 1 if self.horz != 4 else 2
+		self.vert = self.horz + 1 if self.horz != 3 else -3
+		if self.vert == 0:
+			self.vert = self.vert + 1
 		self.colorlist[id] = (random.randrange(0,255),random.randrange(0,255),random.randrange(0,255))
-		if random.randrange(0,2) == 0:
-			horz = - horz
+		if self.defense == 0:
+			self.horz = - self.horz
+# 		self.defense = 1 if self.defense == 0 else 0
 			
-		self.ball_vel[id] = [horz,-vert]
+		self.ball_vel[id] = [self.horz,-self.vert]
 	def step(self, action):
 		observation = []
 		reward = 0
@@ -183,16 +187,6 @@ class DoublePong:
 		observation.append(self.paddle1_pos[0][1])
 		observation.append(self.paddle1_pos[1][0])
 		observation.append(self.paddle1_pos[1][1])
-		observation.append(0)
-		observation.append(0)
-		minp = min(list(map((lambda x: x if x > self.paddle1_pos[0][0] else 100000),self.ball_pos[:][0])))
-		for i in range(self.ball_num):
-			if self.ball_pos[i][0] == minp:
-				observation[-2] = (2 if self.ball_pos[i][1] > self.paddle1_pos[0][1] else 1 )
-		minp = min(list(map((lambda x: x if x > self.paddle1_pos[1][0] else 100000),self.ball_pos[:][0])))
-		for i in range(self.ball_num):
-			if self.ball_pos[i][0] == minp:
-				observation[-1] = (3 if self.ball_pos[i][1] > self.paddle1_pos[1][1] else 4 )
 		info = {"l_score":self.l_score, "r_score":self.r_score}
 		self.reward += reward
 		return [observation, reward, done, info]

@@ -32,7 +32,9 @@ paddle1_pos = [[0, 0], [0, 0]]
 paddle2_pos = [[0, 0], [0, 0]]
 l_score = 0
 r_score = 0
-
+horz = 2
+vert = -3
+defense = 0
 #canvas declaration
 window = pygame.display.set_mode((WIDTH, HEIGHT), 0, 32)
 pygame.display.set_caption('Hello World')
@@ -40,16 +42,19 @@ reward = 0
 # helper function that spawns a ball, returns a position vector and a velocity vector
 # if right is True, spawn to the right, else spawn to the left
 def ball_init(id):
-    global ball_pos, ball_vel # these are vectors stored as lists
+    global ball_pos, ball_vel, vert, horz, defense # these are vectors stored as lists
     ball_pos[id] = [WIDTH//2,HEIGHT//2]
-    horz = random.randrange(2,4)
-    vert = random.randrange(-3,3)
+#     horz = random.randrange(2,4)
+#     vert = random.randrange(-3,3)
+    horz = horz + 1 if horz != 4 else 2
+    vert = horz + 1 if horz != 3 else -3
     if vert == 0:
         vert = vert + 1
     colorlist[id] = (random.randrange(0,255),random.randrange(0,255),random.randrange(0,255))
-    if random.randrange(0,2) == 0:
+    if defense == 0:
         horz = - horz
-        
+#     self.defense = 1 if self.defense == 0 else 0
+
     ball_vel[id] = [horz,-vert]
 
 # define event handlers
@@ -246,26 +251,30 @@ class ActorCritic(nn.Module):
 
         
         self.actor = nn.Sequential(
-                        nn.Linear(state_dim, 128),
+                        nn.Linear(state_dim, 64),
                         nn.ReLU(),
-                        nn.Linear(128, 128),
+                        nn.Linear(64, 64),
                         nn.ReLU(),
-                        nn.Linear(128, 128),
+                        nn.Linear(64, 64),
                         nn.ReLU(),
-                        nn.Linear(128, action_dim),
+                        nn.Linear(64, 64),
+                        nn.ReLU(),
+                        nn.Linear(64, action_dim),
                         nn.Softmax(dim=-1)
                     )
 
         
         # critic
         self.critic = nn.Sequential(
-                        nn.Linear(state_dim, 128),
+                        nn.Linear(state_dim, 64),
                         nn.ReLU(),
-                        nn.Linear(128, 128),
+                        nn.Linear(64, 64),
                         nn.ReLU(),
-                        nn.Linear(128, 128),
+                        nn.Linear(64, 64),
                         nn.ReLU(),
-                        nn.Linear(128, 1)
+                        nn.Linear(64, 64),
+                        nn.ReLU(),
+                        nn.Linear(64, 1)
                     )
 
     def act(self, state):
@@ -311,9 +320,9 @@ class PPO:
         self.policy_old.load_state_dict(torch.load(checkpoint_path, map_location=lambda storage, loc: storage))
         self.policy.load_state_dict(torch.load(checkpoint_path, map_location=lambda storage, loc: storage))
         
-ppo_agent = PPO(ball_num * 4 + 2, 4, 0, 0, 0, 0, 0, None)
+ppo_agent = PPO(ball_num * 4 + 4, 4, 0, 0, 0, 0, 0, None)
 import os
-checkpoint_path = "PPO_pong_game_243_0.pth"
+checkpoint_path = "PPO_pong_game_24000_0.pth"
 # checkpoint_path = "./PPO_preTrained/pong_game/PPO_pong_game_1798_0.pth"
 ppo_agent.load(checkpoint_path)
 
@@ -332,7 +341,9 @@ while True:
             state.append(ball_pos[i][1])
             state.append(ball_vel[i][0])
             state.append(ball_vel[i][1])
+        state.append(paddle1_pos[0][0])
         state.append(paddle1_pos[0][1])
+        state.append(paddle1_pos[1][0])
         state.append(paddle1_pos[1][1])
         action = ppo_agent.select_action(state)
         action += 1
