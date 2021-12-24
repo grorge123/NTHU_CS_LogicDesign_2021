@@ -153,12 +153,14 @@ def draw(canvas):
     for i in range(ball_num):
         for q in range(2):
             if int(ball_pos[i][0]) + BALL_RADIUS + ball_vel[i][0] >= paddle2_pos[q][0] - PAD_WIDTH and ball_pos[i][0] <= paddle2_pos[q][0] - PAD_WIDTH and\
-                 int(ball_pos[i][1]) >= paddle2_pos[q][1] - HALF_PAD_HEIGHT - BALL_RADIUS and int(ball_pos[i][1]) <= paddle2_pos[q][1] + HALF_PAD_HEIGHT:
+                 random.randrange(1, 20) < 19:
+#                  int(ball_pos[i][1]) >= paddle2_pos[q][1] - HALF_PAD_HEIGHT - BALL_RADIUS and int(ball_pos[i][1]) <= paddle2_pos[q][1] + HALF_PAD_HEIGHT:
                 ball_vel[i][0] = -(ball_vel[i][0])
                 ball_vel[i][0] *= 1.2
                 ball_vel[i][1] *= 1.2
             elif int(ball_pos[i][0]) - BALL_RADIUS + ball_vel[i][0] <= paddle2_pos[q][0] + PAD_WIDTH and ball_pos[i][0] >= paddle2_pos[q][0] + PAD_WIDTH and\
-                int(ball_pos[i][1]) >= paddle2_pos[q][1] - HALF_PAD_HEIGHT - BALL_RADIUS and int(ball_pos[i][1]) <= paddle2_pos[q][1] + HALF_PAD_HEIGHT:
+                  random.randrange(1, 20) < 9:
+#                 int(ball_pos[i][1]) >= paddle2_pos[q][1] - HALF_PAD_HEIGHT - BALL_RADIUS and int(ball_pos[i][1]) <= paddle2_pos[q][1] + HALF_PAD_HEIGHT:
                 ball_vel[i][0] = abs(ball_vel[i][0])
                 ball_vel[i][0] *= 1.2
                 ball_vel[i][1] *= 1.2
@@ -251,6 +253,7 @@ class ActorCritic(nn.Module):
 
         
         self.actor = nn.Sequential(
+                        torch.quantization.QuantStub(),
                         nn.Linear(state_dim, 64),
                         nn.ReLU(),
                         nn.Linear(64, 64),
@@ -260,6 +263,7 @@ class ActorCritic(nn.Module):
                         nn.Linear(64, 64),
                         nn.ReLU(),
                         nn.Linear(64, action_dim),
+                        torch.quantization.DeQuantStub(),
                         nn.Softmax(dim=-1)
                     )
 
@@ -322,7 +326,7 @@ class PPO:
         
 ppo_agent = PPO(ball_num * 4 + 4, 4, 0, 0, 0, 0, 0, None)
 import os
-checkpoint_path = "PPO_pong_game_24000_0.pth"
+checkpoint_path = "PPO_pong_game_16000_1.pth"
 # checkpoint_path = "./PPO_preTrained/pong_game/PPO_pong_game_1798_0.pth"
 ppo_agent.load(checkpoint_path)
 
@@ -331,30 +335,30 @@ ppo_agent.load(checkpoint_path)
 
 #game loop
 while True:
-
+    state = []
+    for i in range(ball_num):
+        state.append(ball_pos[i][0])
+        state.append(ball_pos[i][1])
+        state.append(ball_vel[i][0])
+        state.append(ball_vel[i][1])
+    state.append(paddle1_pos[0][0])
+    state.append(paddle1_pos[0][1])
+    state.append(paddle1_pos[1][0])
+    state.append(paddle1_pos[1][1])
+    action = ppo_agent.select_action(state)
+    action += 1
+#     print(state)
+    if action == 1:
+        paddle1_vel[0] = 8
+    elif action == 2:
+        paddle1_vel[0] = -8
+    elif action == 3:
+        paddle1_vel[1] = 8
+    elif action == 4:
+        paddle1_vel[1] = -8
     draw(window)
-
     for event in pygame.event.get():
-        state = []
-        for i in range(ball_num):
-            state.append(ball_pos[i][0])
-            state.append(ball_pos[i][1])
-            state.append(ball_vel[i][0])
-            state.append(ball_vel[i][1])
-        state.append(paddle1_pos[0][0])
-        state.append(paddle1_pos[0][1])
-        state.append(paddle1_pos[1][0])
-        state.append(paddle1_pos[1][1])
-        action = ppo_agent.select_action(state)
-        action += 1
-        if action == 1:
-            paddle1_vel[0] = 8
-        elif action == 2:
-            paddle1_vel[0] = -8
-        elif action == 3:
-            paddle1_vel[1] = 8
-        elif action == 4:
-            paddle1_vel[1] = -8
+        
         if event.type == KEYDOWN:
             keydown(event)
         elif event.type == KEYUP:
@@ -364,4 +368,4 @@ while True:
             sys.exit()
             
     pygame.display.update()
-    fps.tick(60)
+    fps.tick(180)

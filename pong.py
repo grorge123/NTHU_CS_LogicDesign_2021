@@ -147,7 +147,7 @@ def draw(canvas):
         for q in range(2):
             if int(ball_pos[i][0]) + BALL_RADIUS + ball_vel[i][0] >= paddle2_pos[q][0] - PAD_WIDTH and ball_pos[i][0] <= paddle2_pos[q][0] - PAD_WIDTH and\
                  int(ball_pos[i][1]) in range(paddle2_pos[q][1] - HALF_PAD_HEIGHT - BALL_RADIUS, paddle2_pos[q][1] + HALF_PAD_HEIGHT,1):
-                ball_vel[i][0] = -(ball_vel[i][0])
+                ball_vel[i][0] = -abs(ball_vel[i][0])
                 ball_vel[i][0] *= 1.2
                 ball_vel[i][1] *= 1.2
             elif int(ball_pos[i][0]) - BALL_RADIUS + ball_vel[i][0] <= paddle2_pos[q][0] + PAD_WIDTH and ball_pos[i][0] >= paddle2_pos[q][0] + PAD_WIDTH and\
