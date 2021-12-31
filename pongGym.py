@@ -163,13 +163,13 @@ class DoublePong:
 		for i in range(self.ball_num):
 			for q in range(2):
 				if int(self.ball_pos[i][0]) + DoublePong.BALL_RADIUS + self.ball_vel[i][0] >= self.paddle2_pos[q][0] - DoublePong.PAD_WIDTH and self.ball_pos[i][0] <= self.paddle2_pos[q][0] - DoublePong.PAD_WIDTH and\
-					random.randrange(1, 20) < 19:
+					random.randrange(1, 20) < 9:
 					# int(self.ball_pos[i][1]) >= self.paddle2_pos[q][1] - DoublePong.HALF_PAD_HEIGHT - DoublePong.BALL_RADIUS and int(self.ball_pos[i][1]) <= self.paddle2_pos[q][1] + DoublePong.HALF_PAD_HEIGHT:
 					self.ball_vel[i][0] = -abs(self.ball_vel[i][0])
 					self.ball_vel[i][0] *= 1.2
 					self.ball_vel[i][1] *= 1.2
 				elif int(self.ball_pos[i][0]) - DoublePong.BALL_RADIUS + self.ball_vel[i][0] <= self.paddle2_pos[q][0] + DoublePong.PAD_WIDTH and self.ball_pos[i][0] >= self.paddle2_pos[q][0] + DoublePong.PAD_WIDTH and\
-					random.randrange(1, 20) < 9:
+					random.randrange(1, 20) < 19:
 					# int(self.ball_pos[i][1]) >= self.paddle2_pos[q][1] - DoublePong.HALF_PAD_HEIGHT - DoublePong.BALL_RADIUS and int(self.ball_pos[i][1]) <= self.paddle2_pos[q][1] + DoublePong.HALF_PAD_HEIGHT:
 					self.ball_vel[i][0] = abs(self.ball_vel[i][0])
 					self.ball_vel[i][0] *= 1.2
@@ -179,14 +179,14 @@ class DoublePong:
 					self.ball_init(i)
 		observation = []
 		for i in range(self.ball_num):
-			observation.append(self.ball_pos[i][0])
-			observation.append(self.ball_pos[i][1])
-			observation.append(self.ball_vel[i][0])
-			observation.append(self.ball_vel[i][1])
-		observation.append(self.paddle1_pos[0][0])
-		observation.append(self.paddle1_pos[0][1])
-		observation.append(self.paddle1_pos[1][0])
-		observation.append(self.paddle1_pos[1][1])
+			observation.append(int(self.ball_pos[i][0]))
+			observation.append(int(self.ball_pos[i][1]))
+			observation.append(int(self.ball_vel[i][0]))
+			observation.append(int(self.ball_vel[i][1]))
+		observation.append(int(self.paddle1_pos[0][0]))
+		observation.append(int(self.paddle1_pos[0][1]))
+		observation.append(int(self.paddle1_pos[1][0]))
+		observation.append(int(self.paddle1_pos[1][1]))
 		info = {"l_score":self.l_score, "r_score":self.r_score}
 		self.reward += reward
 		return [observation, reward, done, info]
