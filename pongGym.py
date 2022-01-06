@@ -72,16 +72,22 @@ class DoublePong:
 		self.ball_pos[id] = [self.WIDTH//2,self.HEIGHT//2]
 # 		horz = random.randrange(2,4)
 # 		vert = random.randrange(-3,3)
-		self.horz = self.horz + 1 if self.horz != 4 else 2
-		self.vert = self.horz + 1 if self.horz != 3 else -3
+# 		self.horz = self.horz + 1 if self.horz != 4 else 2
+		self.vert = self.vert + 1 if self.vert != 3 else 0
 		if self.vert == 0:
 			self.vert = self.vert + 1
 		self.colorlist[id] = (random.randrange(0,255),random.randrange(0,255),random.randrange(0,255))
-		if self.defense == 0:
-			self.horz = - self.horz
+# 		if self.defense == 0:
+# 			self.horz = - self.horz
 # 		self.defense = 1 if self.defense == 0 else 0
-			
-		self.ball_vel[id] = [self.horz,-self.vert]
+		if(self.vert == 0):
+			self.ball_vel[id] = [-1,2]
+		elif(self.vert == 1):
+			self.ball_vel[id] = [4,3]
+		elif(self.vert == 2):
+			self.ball_vel[id] = [2,-4]
+		elif(self.vert == 3):
+			self.ball_vel[id] = [-3,-1]
 	def step(self, action):
 		observation = []
 		reward = 0
@@ -166,14 +172,14 @@ class DoublePong:
 					random.randrange(1, 20) < 9:
 					# int(self.ball_pos[i][1]) >= self.paddle2_pos[q][1] - DoublePong.HALF_PAD_HEIGHT - DoublePong.BALL_RADIUS and int(self.ball_pos[i][1]) <= self.paddle2_pos[q][1] + DoublePong.HALF_PAD_HEIGHT:
 					self.ball_vel[i][0] = -abs(self.ball_vel[i][0])
-					self.ball_vel[i][0] *= 1.2
-					self.ball_vel[i][1] *= 1.2
+					self.ball_vel[i][0] += 1 if self.ball_vel[i][0] > 0 else -1
+					self.ball_vel[i][1] += 1 if self.ball_vel[i][1] > 0 else -1
 				elif int(self.ball_pos[i][0]) - DoublePong.BALL_RADIUS + self.ball_vel[i][0] <= self.paddle2_pos[q][0] + DoublePong.PAD_WIDTH and self.ball_pos[i][0] >= self.paddle2_pos[q][0] + DoublePong.PAD_WIDTH and\
 					random.randrange(1, 20) < 19:
 					# int(self.ball_pos[i][1]) >= self.paddle2_pos[q][1] - DoublePong.HALF_PAD_HEIGHT - DoublePong.BALL_RADIUS and int(self.ball_pos[i][1]) <= self.paddle2_pos[q][1] + DoublePong.HALF_PAD_HEIGHT:
 					self.ball_vel[i][0] = abs(self.ball_vel[i][0])
-					self.ball_vel[i][0] *= 1.2
-					self.ball_vel[i][1] *= 1.2
+					self.ball_vel[i][0] += 1 if self.ball_vel[i][0] > 0 else -1
+					self.ball_vel[i][1] += 1 if self.ball_vel[i][1] > 0 else -1
 				elif int(self.ball_pos[i][0]) >= self.WIDTH + 1 - DoublePong.BALL_RADIUS - DoublePong.PAD_WIDTH:
 					self.l_score += 1
 					self.ball_init(i)
