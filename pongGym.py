@@ -70,24 +70,19 @@ class DoublePong:
 		return observation
 	def ball_init(self, id):
 		self.ball_pos[id] = [self.WIDTH//2,self.HEIGHT//2]
-# 		horz = random.randrange(2,4)
-# 		vert = random.randrange(-3,3)
+		horz = random.randrange(-4,4)
+		vert = random.randrange(-4,4)
 # 		self.horz = self.horz + 1 if self.horz != 4 else 2
-		self.vert = self.vert + 1 if self.vert != 3 else 0
-		if self.vert == 0:
-			self.vert = self.vert + 1
+		# self.vert = self.vert + 1 if self.vert != 3 else 0
+		if horz == 0:
+			horz = horz + 1
 		self.colorlist[id] = (random.randrange(0,255),random.randrange(0,255),random.randrange(0,255))
 # 		if self.defense == 0:
 # 			self.horz = - self.horz
 # 		self.defense = 1 if self.defense == 0 else 0
-		if(self.vert == 0):
-			self.ball_vel[id] = [-1,2]
-		elif(self.vert == 1):
-			self.ball_vel[id] = [4,3]
-		elif(self.vert == 2):
-			self.ball_vel[id] = [2,-4]
-		elif(self.vert == 3):
-			self.ball_vel[id] = [-3,-1]
+		print(horz, vert)
+		self.ball_vel[id] = [horz, vert]
+		
 	def step(self, action):
 		observation = []
 		reward = 0
@@ -231,13 +226,13 @@ class DoublePong:
 		if not self.first_show:
 			pygame.quit()
 		
-# env = DoublePong()
-# fps = pygame.time.Clock()
-# while True:
-# 	st = env.reset()
-# 	done = False
-# 	while not done:
-# 		action = random.randrange(0,6)
-# 		observation, reward, done, info = env.step(action)
-# 		env.render()
-# 		# fps.tick(60)
+env = DoublePong()
+fps = pygame.time.Clock()
+while True:
+	st = env.reset()
+	done = False
+	while not done:
+		action = random.randrange(0,6)
+		observation, reward, done, info = env.step(action)
+		env.render()
+		fps.tick(60)
