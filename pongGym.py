@@ -90,13 +90,13 @@ class DoublePong:
 		self.counter += 1
 		action += 1
 		if action == 1:
-			self.paddle1_vel[0] = 8
+			self.paddle1_vel[0] = 12
 		elif action == 2:
-			self.paddle1_vel[0] = -8
+			self.paddle1_vel[0] = -12
 		elif action == 3:
-			self.paddle1_vel[1] = 8
+			self.paddle1_vel[1] = 12
 		elif action == 4:
-			self.paddle1_vel[1] = -8
+			self.paddle1_vel[1] = -12
 		
 		if self.paddle1_pos[0][1] > DoublePong.HALF_PAD_HEIGHT and self.paddle1_pos[0][1] < self.HEIGHT - DoublePong.HALF_PAD_HEIGHT:
 			self.paddle1_pos[0][1] += self.paddle1_vel[0]
