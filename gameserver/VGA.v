@@ -11,6 +11,16 @@ module VGA(
 	input wire signed [10:0] ball4_posy,
 	input wire signed [10:0] ball5_posx,
 	input wire signed [10:0] ball5_posy,
+	//new thing
+	input wire signed [10:0] ball1_velx,
+	input wire signed [10:0] ball2_velx,
+	input wire signed [10:0] ball3_velx,
+	input wire signed [10:0] ball4_velx,
+	input wire signed [10:0] ball5_velx,
+	//score
+	input wire [8:0] Play1_S,
+	input wire [8:0] Play2_S,
+
 	input wire signed [10:0] paddle10_posx,
 	input wire signed [10:0] paddle10_posy,
 	input wire signed [10:0] paddle11_posx,
@@ -25,19 +35,21 @@ module VGA(
 	output wire hsync,
 	output wire vsync
 );
-	wire [11:0] data;
-	assign data = 12'd0;
+	// wire [11:0] data;
+	// assign data = 12'd0;
     wire clk_25MHz;
     wire clk_22;
-    wire [16:0] pixel_addr;
+    // wire [16:0] pixel_addr;
     reg [11:0] pixel;
-    wire [11:0] outdata;
+    // wire [11:0] outdata;
     wire valid;
     wire signed [10:0] h_cnt; //640
     wire signed [10:0] v_cnt;  //480
+	//background update
+	// wire [8:0] sub;
 	parameter signed WIDTH = 11'd640;
 	parameter signed HEIGHT = 11'd480;       
-	parameter signed BALL_RADIUS = 11'd10;
+	parameter signed BALL_RADIUS = 11'd6;
 	parameter signed PAD_WIDTH = 11'd4;
 	parameter signed PAD_HEIGHT = 11'd80;
 	parameter signed PAD_SPACE = 11'd60;
@@ -51,16 +63,14 @@ module VGA(
       .clk1(clk_25MHz),
 	  .rst_n(rst_n)
     );
-
-   assign pixel_addr = ((h_cnt>>1)+320*(v_cnt>>1))% 76800;  
      
-    blk_mem_gen_0 blk_mem_gen_0_inst(
-      .clka(clk_25MHz),
-      .wea(0),
-      .addra(pixel_addr),
-      .dina(data[11:0]),
-      .douta(outdata)
-    ); 
+    // blk_mem_gen_0 blk_mem_gen_0_inst(
+    //   .clka(clk_25MHz),
+    //   .wea(0),
+    //   .addra(pixel_addr),
+    //   .dina(data[11:0]),
+    //   .douta(outdata)
+    // ); 
 
     vga_controller  vga_inst(
       .pclk(clk_25MHz),
@@ -72,57 +82,116 @@ module VGA(
       .v_cnt(v_cnt)
     );
 
+	// assign sub = ;
+	wire [10:0] lf, rf;
+	assign lf = (11'd320 + ({2'b0, Play2_S} - {2'b0, Play1_S}) * 11'd2);
+	assign rf = (11'd320 - ({2'b0, Play2_S} - {2'b0, Play1_S}) * 11'd2);
 	always@(*)begin
-		pixel = outdata;
-		if(h_cnt >= paddle10_posx - PAD_WIDTH && h_cnt <= paddle10_posx + PAD_WIDTH && v_cnt >= paddle10_posy - HALF_PAD_HEIGHT && v_cnt <= paddle10_posy + HALF_PAD_HEIGHT)
-			pixel = {4'd15,4'd15,4'd15};
-		if(h_cnt >= paddle11_posx - PAD_WIDTH && h_cnt <= paddle11_posx + PAD_WIDTH && v_cnt >= paddle11_posy - HALF_PAD_HEIGHT && v_cnt <= paddle11_posy + HALF_PAD_HEIGHT)
-			pixel = {4'd15,4'd15,4'd15};
-		if(h_cnt >= paddle20_posx - PAD_WIDTH && h_cnt <= paddle20_posx + PAD_WIDTH && v_cnt >= paddle20_posy - HALF_PAD_HEIGHT && v_cnt <= paddle20_posy + HALF_PAD_HEIGHT)
-			pixel = {4'd15,4'd15,4'd15};
-		if(h_cnt >= paddle21_posx - PAD_WIDTH && h_cnt <= paddle21_posx + PAD_WIDTH && v_cnt >= paddle21_posy - HALF_PAD_HEIGHT && v_cnt <= paddle21_posy + HALF_PAD_HEIGHT)
-			pixel = {4'd15,4'd15,4'd15};
+		// pixel = outdata;
+		//backgroud
+		if(Play1_S > Play2_S)begin
+			if(h_cnt <= lf)begin
+				pixel = {4'd0, 4'd15, 4'd0};
+			end else begin
+				pixel = {4'd0, 4'd0, 4'd0};
+			end
+		end else begin
+			if(h_cnt <= rf)begin
+				pixel = {4'd0, 4'd15, 4'd0};
+			end else begin
+				pixel = {4'd0, 4'd0, 4'd0};
+			end
+		end
+		// if(h_cnt >= 11'd320 )
+		// 	pixel = {4'd0 , 4'd15 , 4'd0};
+		//central line
+		if(h_cnt >= 11'd319 && h_cnt <= 11'd322)
+			pixel = {4'd15, 4'd15, 4'd15};
 		
-		if(h_cnt >= ball1_posx - BALL_RADIUS && h_cnt <= ball1_posx + BALL_RADIUS && v_cnt == ball1_posy + BALL_RADIUS)
-			pixel = {4'd4, 4'd0, 4'd0};
-		if(h_cnt >= ball1_posx - BALL_RADIUS && h_cnt <= ball1_posx + BALL_RADIUS && v_cnt == ball1_posy - BALL_RADIUS)
-			pixel = {4'd4, 4'd0, 4'd0};
-		if(v_cnt >= ball1_posy - BALL_RADIUS && v_cnt <= ball1_posy + BALL_RADIUS && h_cnt == ball1_posx + BALL_RADIUS)
-			pixel = {4'd4, 4'd0, 4'd0};
-		if(v_cnt >= ball1_posy - BALL_RADIUS && v_cnt <= ball1_posy + BALL_RADIUS && h_cnt == ball1_posx - BALL_RADIUS)
-			pixel = {4'd4, 4'd0, 4'd0};
-		if(h_cnt >= ball2_posx - BALL_RADIUS && h_cnt <= ball2_posx + BALL_RADIUS && v_cnt == ball2_posy + BALL_RADIUS)
-			pixel = {4'd4, 4'd0, 4'd0};
-		if(h_cnt >= ball2_posx - BALL_RADIUS && h_cnt <= ball2_posx + BALL_RADIUS && v_cnt == ball2_posy - BALL_RADIUS)
-			pixel = {4'd4, 4'd0, 4'd0};
-		if(v_cnt >= ball2_posy - BALL_RADIUS && v_cnt <= ball2_posy + BALL_RADIUS && h_cnt == ball2_posx + BALL_RADIUS)
-			pixel = {4'd4, 4'd0, 4'd0};
-		if(v_cnt >= ball2_posy - BALL_RADIUS && v_cnt <= ball2_posy + BALL_RADIUS && h_cnt == ball2_posx - BALL_RADIUS)
-			pixel = {4'd4, 4'd0, 4'd0};
-		if(h_cnt >= ball3_posx - BALL_RADIUS && h_cnt <= ball3_posx + BALL_RADIUS && v_cnt == ball3_posy + BALL_RADIUS)
-			pixel = {4'd4, 4'd0, 4'd0};
-		if(h_cnt >= ball3_posx - BALL_RADIUS && h_cnt <= ball3_posx + BALL_RADIUS && v_cnt == ball3_posy - BALL_RADIUS)
-			pixel = {4'd4, 4'd0, 4'd0};
-		if(v_cnt >= ball3_posy - BALL_RADIUS && v_cnt <= ball3_posy + BALL_RADIUS && h_cnt == ball3_posx + BALL_RADIUS)
-			pixel = {4'd4, 4'd0, 4'd0};
-		if(v_cnt >= ball3_posy - BALL_RADIUS && v_cnt <= ball3_posy + BALL_RADIUS && h_cnt == ball3_posx - BALL_RADIUS)
-			pixel = {4'd4, 4'd0, 4'd0};
-		if(h_cnt >= ball4_posx - BALL_RADIUS && h_cnt <= ball4_posx + BALL_RADIUS && v_cnt == ball4_posy + BALL_RADIUS)
-			pixel = {4'd4, 4'd0, 4'd0};
-		if(h_cnt >= ball4_posx - BALL_RADIUS && h_cnt <= ball4_posx + BALL_RADIUS && v_cnt == ball4_posy - BALL_RADIUS)
-			pixel = {4'd4, 4'd0, 4'd0};
-		if(v_cnt >= ball4_posy - BALL_RADIUS && v_cnt <= ball4_posy + BALL_RADIUS && h_cnt == ball4_posx + BALL_RADIUS)
-			pixel = {4'd4, 4'd0, 4'd0};
-		if(v_cnt >= ball4_posy - BALL_RADIUS && v_cnt <= ball4_posy + BALL_RADIUS && h_cnt == ball4_posx - BALL_RADIUS)
-			pixel = {4'd4, 4'd0, 4'd0};
-		if(h_cnt >= ball5_posx - BALL_RADIUS && h_cnt <= ball5_posx + BALL_RADIUS && v_cnt == ball5_posy + BALL_RADIUS)
-			pixel = {4'd4, 4'd0, 4'd0};
-		if(h_cnt >= ball5_posx - BALL_RADIUS && h_cnt <= ball5_posx + BALL_RADIUS && v_cnt == ball5_posy - BALL_RADIUS)
-			pixel = {4'd4, 4'd0, 4'd0};
-		if(v_cnt >= ball5_posy - BALL_RADIUS && v_cnt <= ball5_posy + BALL_RADIUS && h_cnt == ball5_posx + BALL_RADIUS)
-			pixel = {4'd4, 4'd0, 4'd0};
-		if(v_cnt >= ball5_posy - BALL_RADIUS && v_cnt <= ball5_posy + BALL_RADIUS && h_cnt == ball5_posx - BALL_RADIUS)
-			pixel = {4'd4, 4'd0, 4'd0};
+		//right paddle(red)     left paddle(blue)
+		if(h_cnt >= paddle10_posx - PAD_WIDTH && h_cnt <= paddle10_posx + PAD_WIDTH && v_cnt >= paddle10_posy - HALF_PAD_HEIGHT && v_cnt <= paddle10_posy + HALF_PAD_HEIGHT)
+			pixel = {4'd0,4'd0,4'd15};
+		if(h_cnt >= paddle11_posx - PAD_WIDTH && h_cnt <= paddle11_posx + PAD_WIDTH && v_cnt >= paddle11_posy - HALF_PAD_HEIGHT && v_cnt <= paddle11_posy + HALF_PAD_HEIGHT)
+			pixel = {4'd0,4'd0,4'd15};
+		if(h_cnt >= paddle20_posx - PAD_WIDTH && h_cnt <= paddle20_posx + PAD_WIDTH && v_cnt >= paddle20_posy - HALF_PAD_HEIGHT && v_cnt <= paddle20_posy + HALF_PAD_HEIGHT)
+			pixel = {4'd15,4'd0,4'd0};
+		if(h_cnt >= paddle21_posx - PAD_WIDTH && h_cnt <= paddle21_posx + PAD_WIDTH && v_cnt >= paddle21_posy - HALF_PAD_HEIGHT && v_cnt <= paddle21_posy + HALF_PAD_HEIGHT)
+			pixel = {4'd15,4'd0,4'd0};
+		//ball(fill)
+		//if ball goes to left => red 
+		//if ball goes to right => blue
+		if(h_cnt >= ball1_posx - BALL_RADIUS && h_cnt <= ball1_posx + BALL_RADIUS && v_cnt <= ball1_posy + BALL_RADIUS && v_cnt >= ball1_posy - BALL_RADIUS)begin
+			if(ball1_velx[10] == 0)
+				pixel = {4'd0, 4'd0, 4'd15};
+			else 
+				pixel = {4'd15, 4'd0, 4'd0};
+		end
+		if(h_cnt >= ball2_posx - BALL_RADIUS && h_cnt <= ball2_posx + BALL_RADIUS && v_cnt <= ball2_posy + BALL_RADIUS && v_cnt >= ball2_posy - BALL_RADIUS)begin
+			if(ball2_velx[10] == 0)
+				pixel = {4'd0, 4'd0, 4'd15};
+			else 
+				pixel = {4'd15, 4'd0, 4'd0};
+		end
+		if(h_cnt >= ball3_posx - BALL_RADIUS && h_cnt <= ball3_posx + BALL_RADIUS && v_cnt <= ball3_posy + BALL_RADIUS && v_cnt >= ball3_posy - BALL_RADIUS)begin
+			if(ball3_velx[10] == 0)
+				pixel = {4'd0, 4'd0, 4'd15};
+			else 
+				pixel = {4'd15, 4'd0, 4'd0};
+		end
+		if(h_cnt >= ball4_posx - BALL_RADIUS && h_cnt <= ball4_posx + BALL_RADIUS && v_cnt <= ball4_posy + BALL_RADIUS && v_cnt >= ball4_posy - BALL_RADIUS)begin
+			if(ball4_velx[10] == 0)
+				pixel = {4'd0, 4'd0, 4'd15};
+			else 
+				pixel = {4'd15, 4'd0, 4'd0};
+		end
+		if(h_cnt >= ball5_posx - BALL_RADIUS && h_cnt <= ball5_posx + BALL_RADIUS && v_cnt <= ball5_posy + BALL_RADIUS && v_cnt >= ball5_posy - BALL_RADIUS)begin
+			if(ball5_velx[10] == 0)
+				pixel = {4'd0, 4'd0, 4'd15};
+			else 
+				pixel = {4'd15, 4'd0, 4'd0};
+		end
+
+		//ball(side)
+		// if(h_cnt >= ball1_posx - BALL_RADIUS && h_cnt <= ball1_posx + BALL_RADIUS && v_cnt == ball1_posy + BALL_RADIUS)
+		// 	pixel = {4'd4, 4'd0, 4'd0};
+		// if(h_cnt >= ball1_posx - BALL_RADIUS && h_cnt <= ball1_posx + BALL_RADIUS && v_cnt == ball1_posy - BALL_RADIUS)
+		// 	pixel = {4'd4, 4'd0, 4'd0};
+		// if(v_cnt >= ball1_posy - BALL_RADIUS && v_cnt <= ball1_posy + BALL_RADIUS && h_cnt == ball1_posx + BALL_RADIUS)
+		// 	pixel = {4'd4, 4'd0, 4'd0};
+		// if(v_cnt >= ball1_posy - BALL_RADIUS && v_cnt <= ball1_posy + BALL_RADIUS && h_cnt == ball1_posx - BALL_RADIUS)
+		// 	pixel = {4'd4, 4'd0, 4'd0};
+		// if(h_cnt >= ball2_posx - BALL_RADIUS && h_cnt <= ball2_posx + BALL_RADIUS && v_cnt == ball2_posy + BALL_RADIUS)
+		// 	pixel = {4'd4, 4'd0, 4'd0};
+		// if(h_cnt >= ball2_posx - BALL_RADIUS && h_cnt <= ball2_posx + BALL_RADIUS && v_cnt == ball2_posy - BALL_RADIUS)
+		// 	pixel = {4'd4, 4'd0, 4'd0};
+		// if(v_cnt >= ball2_posy - BALL_RADIUS && v_cnt <= ball2_posy + BALL_RADIUS && h_cnt == ball2_posx + BALL_RADIUS)
+		// 	pixel = {4'd4, 4'd0, 4'd0};
+		// if(v_cnt >= ball2_posy - BALL_RADIUS && v_cnt <= ball2_posy + BALL_RADIUS && h_cnt == ball2_posx - BALL_RADIUS)
+		// 	pixel = {4'd4, 4'd0, 4'd0};
+		// if(h_cnt >= ball3_posx - BALL_RADIUS && h_cnt <= ball3_posx + BALL_RADIUS && v_cnt == ball3_posy + BALL_RADIUS)
+		// 	pixel = {4'd4, 4'd0, 4'd0};
+		// if(h_cnt >= ball3_posx - BALL_RADIUS && h_cnt <= ball3_posx + BALL_RADIUS && v_cnt == ball3_posy - BALL_RADIUS)
+		// 	pixel = {4'd4, 4'd0, 4'd0};
+		// if(v_cnt >= ball3_posy - BALL_RADIUS && v_cnt <= ball3_posy + BALL_RADIUS && h_cnt == ball3_posx + BALL_RADIUS)
+		// 	pixel = {4'd4, 4'd0, 4'd0};
+		// if(v_cnt >= ball3_posy - BALL_RADIUS && v_cnt <= ball3_posy + BALL_RADIUS && h_cnt == ball3_posx - BALL_RADIUS)
+		// 	pixel = {4'd4, 4'd0, 4'd0};
+		// if(h_cnt >= ball4_posx - BALL_RADIUS && h_cnt <= ball4_posx + BALL_RADIUS && v_cnt == ball4_posy + BALL_RADIUS)
+		// 	pixel = {4'd4, 4'd0, 4'd0};
+		// if(h_cnt >= ball4_posx - BALL_RADIUS && h_cnt <= ball4_posx + BALL_RADIUS && v_cnt == ball4_posy - BALL_RADIUS)
+		// 	pixel = {4'd4, 4'd0, 4'd0};
+		// if(v_cnt >= ball4_posy - BALL_RADIUS && v_cnt <= ball4_posy + BALL_RADIUS && h_cnt == ball4_posx + BALL_RADIUS)
+		// 	pixel = {4'd4, 4'd0, 4'd0};
+		// if(v_cnt >= ball4_posy - BALL_RADIUS && v_cnt <= ball4_posy + BALL_RADIUS && h_cnt == ball4_posx - BALL_RADIUS)
+		// 	pixel = {4'd4, 4'd0, 4'd0};
+		// if(h_cnt >= ball5_posx - BALL_RADIUS && h_cnt <= ball5_posx + BALL_RADIUS && v_cnt == ball5_posy + BALL_RADIUS)
+		// 	pixel = {4'd4, 4'd0, 4'd0};
+		// if(h_cnt >= ball5_posx - BALL_RADIUS && h_cnt <= ball5_posx + BALL_RADIUS && v_cnt == ball5_posy - BALL_RADIUS)
+		// 	pixel = {4'd4, 4'd0, 4'd0};
+		// if(v_cnt >= ball5_posy - BALL_RADIUS && v_cnt <= ball5_posy + BALL_RADIUS && h_cnt == ball5_posx + BALL_RADIUS)
+		// 	pixel = {4'd4, 4'd0, 4'd0};
+		// if(v_cnt >= ball5_posy - BALL_RADIUS && v_cnt <= ball5_posy + BALL_RADIUS && h_cnt == ball5_posx - BALL_RADIUS)
+		// 	pixel = {4'd4, 4'd0, 4'd0};
 		
 	end
 endmodule
