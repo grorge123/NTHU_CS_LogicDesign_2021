@@ -1,6 +1,6 @@
 WIDTH = 640
 HEIGHT = 480       
-BALL_RADIUS = 10
+BALL_RADIUS = 6
 PAD_WIDTH = 4
 PAD_HEIGHT = 80
 ball_num = 5

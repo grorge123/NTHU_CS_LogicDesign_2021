@@ -144,15 +144,13 @@ class DoublePong:
 		for i in range(self.ball_num):
 			for q in range(2):
 				if int(self.ball_pos[i][0]) + DoublePong.BALL_RADIUS + self.ball_vel[i][0] >= self.paddle1_pos[q][0] - DoublePong.PAD_WIDTH and int(self.ball_pos[i][0]) <= self.paddle1_pos[q][0] - DoublePong.PAD_WIDTH and\
-					int(self.ball_pos[i][1]) >= self.paddle1_pos[q][1] - DoublePong.HALF_PAD_HEIGHT - DoublePong.BALL_RADIUS and int(self.ball_pos[i][1]) <= self.paddle1_pos[q][1] + DoublePong.HALF_PAD_HEIGHT + DoublePong.BALL_RADIUS:
-					self.ball_vel[i][0] = -abs(self.ball_vel[i][0])
-					self.ball_vel[i][0] += 1 if self.ball_vel[i][0] > 0 else -1
+					int(self.ball_pos[i][1]) >= self.paddle1_pos[q][1] - DoublePong.HALF_PAD_HEIGHT - DoublePong.BALL_RADIUS and int(self.ball_pos[i][1]) <= self.paddle1_pos[q][1] + DoublePong.HALF_PAD_HEIGHT + DoublePong.BALL_RADIUS and self.ball_vel[i][0] > 0:
+					self.ball_vel[i][0] = self.ball_vel[i][0] * -1 - 1
 					self.ball_vel[i][1] += 1 if self.ball_vel[i][1] > 0 else -1
 					reward -= 5 + abs(self.ball_vel[i][0])
 				elif int(self.ball_pos[i][0]) - DoublePong.BALL_RADIUS + self.ball_vel[i][0] <= self.paddle1_pos[q][0] + DoublePong.PAD_WIDTH and int(self.ball_pos[i][0]) >= self.paddle1_pos[q][0] + DoublePong.PAD_WIDTH and\
-					int(self.ball_pos[i][1]) >= self.paddle1_pos[q][1] - DoublePong.HALF_PAD_HEIGHT - DoublePong.BALL_RADIUS and int(self.ball_pos[i][1]) <= self.paddle1_pos[q][1] + DoublePong.HALF_PAD_HEIGHT + DoublePong.BALL_RADIUS :
-					self.ball_vel[i][0] = abs(self.ball_vel[i][0])
-					self.ball_vel[i][0] += 1 if self.ball_vel[i][0] > 0 else -1
+					int(self.ball_pos[i][1]) >= self.paddle1_pos[q][1] - DoublePong.HALF_PAD_HEIGHT - DoublePong.BALL_RADIUS and int(self.ball_pos[i][1]) <= self.paddle1_pos[q][1] + DoublePong.HALF_PAD_HEIGHT + DoublePong.BALL_RADIUS and self.ball_vel[i][0] < 0:
+					self.ball_vel[i][0] = self.ball_vel[i][0] * -1 + 1
 					self.ball_vel[i][1] += 1 if self.ball_vel[i][1] > 0 else -1
 					reward += 5 + abs(self.ball_vel[i][0])
 				elif int(self.ball_pos[i][0]) <= DoublePong.BALL_RADIUS + DoublePong.PAD_WIDTH:
@@ -163,16 +161,12 @@ class DoublePong:
 		for i in range(self.ball_num):
 			for q in range(2):
 				if int(self.ball_pos[i][0]) + DoublePong.BALL_RADIUS + self.ball_vel[i][0] >= self.paddle2_pos[q][0] - DoublePong.PAD_WIDTH and self.ball_pos[i][0] <= self.paddle2_pos[q][0] - DoublePong.PAD_WIDTH and\
-					random.randrange(1, 20) < 15:
-					# int(self.ball_pos[i][1]) >= self.paddle2_pos[q][1] - DoublePong.HALF_PAD_HEIGHT - DoublePong.BALL_RADIUS and int(self.ball_pos[i][1]) <= self.paddle2_pos[q][1] + DoublePong.HALF_PAD_HEIGHT:
-					self.ball_vel[i][0] = -abs(self.ball_vel[i][0])
-					self.ball_vel[i][0] += 1 if self.ball_vel[i][0] > 0 else -1
+					int(self.ball_pos[i][1]) >= self.paddle2_pos[q][1] - DoublePong.HALF_PAD_HEIGHT - DoublePong.BALL_RADIUS and int(self.ball_pos[i][1]) <= self.paddle2_pos[q][1] + DoublePong.HALF_PAD_HEIGHT and self.ball_vel[i][0] > 0:
+					self.ball_vel[i][0] = self.ball_vel[i][0] * -1 - 1
 					self.ball_vel[i][1] += 1 if self.ball_vel[i][1] > 0 else -1
 				elif int(self.ball_pos[i][0]) - DoublePong.BALL_RADIUS + self.ball_vel[i][0] <= self.paddle2_pos[q][0] + DoublePong.PAD_WIDTH and self.ball_pos[i][0] >= self.paddle2_pos[q][0] + DoublePong.PAD_WIDTH and\
-					random.randrange(1, 20) < 19:
-					# int(self.ball_pos[i][1]) >= self.paddle2_pos[q][1] - DoublePong.HALF_PAD_HEIGHT - DoublePong.BALL_RADIUS and int(self.ball_pos[i][1]) <= self.paddle2_pos[q][1] + DoublePong.HALF_PAD_HEIGHT:
-					self.ball_vel[i][0] = abs(self.ball_vel[i][0])
-					self.ball_vel[i][0] += 1 if self.ball_vel[i][0] > 0 else -1
+					int(self.ball_pos[i][1]) >= self.paddle2_pos[q][1] - DoublePong.HALF_PAD_HEIGHT - DoublePong.BALL_RADIUS and int(self.ball_pos[i][1]) <= self.paddle2_pos[q][1] + DoublePong.HALF_PAD_HEIGHT and self.ball_vel[i][0] < 0:
+					self.ball_vel[i][0] = self.ball_vel[i][0] * -1 + 1
 					self.ball_vel[i][1] += 1 if self.ball_vel[i][1] > 0 else -1
 				elif int(self.ball_pos[i][0]) >= self.WIDTH + 1 - DoublePong.BALL_RADIUS - DoublePong.PAD_WIDTH:
 					self.l_score += 1
