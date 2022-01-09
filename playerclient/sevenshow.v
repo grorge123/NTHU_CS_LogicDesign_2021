@@ -1,5 +1,5 @@
 module sevenshow(
-    input [4:0] inp,
+    input [8:0] inp,
 	output [3:0] an,
 	output [7:0] seven,
 	input wire clk,
@@ -8,25 +8,25 @@ module sevenshow(
 	reg [7:0] counter;
 	reg [5:0] tmp;
 	reg [5:0] next_tmp;
-	wire [7:0] cacu;
+	// wire [7:0] cacu;
 
-	assign cacu = counter * 8'd32 + {3'd0, inp};
-	wire [7:0] lo[4:0];
-	wire [7:0] dlo[4:0];
-    assign lo[0] = cacu % 8'd10;
-    assign lo[1] = (cacu / 8'd10) % 8'd10;
-    assign lo[2] = (cacu / 8'd100) % 8'd10;
+	// assign cacu = counter * 8'd32 + {3'd0, inp};
+	wire [8:0] lo[4:0];
+	wire [8:0] dlo[4:0];
+    assign lo[0] = inp % 9'd10;
+    assign lo[1] = (inp / 9'd10) % 9'd10;
+    assign lo[2] = (inp / 9'd100) % 9'd10;
     assign lo[3] = 8'd0;
 	// assign lo[3] = counter;
 	always@(posedge clk)begin
 		if(rst_n)begin
-			counter <= 8'd0;
+			// counter <= 8'd0;
 			tmp <= 8'd0; 
 		end else begin
-			if(tmp > 5'd29 && next_tmp < 5'd5)
-				counter <= counter + 8'd1;
-			else
-				counter <= counter;
+			// if(tmp > 5'd29 && next_tmp < 5'd5)
+				// counter <= counter + 8'd1;
+			// else
+				// counter <= counter;
 			tmp <= next_tmp;
 		end
 	end
@@ -40,18 +40,18 @@ module sevenshow(
 	seven_show seven_s(.clk(clk), .rst_n(rst_n), .a(dlo[0]), .b(dlo[1]), .c(dlo[2]), .d(dlo[3]), .an(an), .led(seven));
 endmodule
 module show_encode(inp, out);
-	input [7:0] inp;
+	input [8:0] inp;
 	output [7:0] out;
-	assign out = (inp == 8'd0) ?  8'b00000011:
-				(inp == 8'd1) ? 8'b10011111:
-				(inp == 8'd2) ? 8'b00100101:
-				(inp == 8'd3) ? 8'b00001101:
-				(inp == 8'd4) ? 8'b10011001:
-				(inp == 8'd5) ? 8'b01001001:
-				(inp == 8'd6) ? 8'b01000001:
-				(inp == 8'd7) ? 8'b00011111:
-				(inp == 8'd8) ? 8'b00000001:
-				(inp == 8'd9) ? 8'b00001001:8'b00001111;
+	assign out = (inp == 9'd0) ?  8'b00000011:
+				(inp == 9'd1) ? 8'b10011111:
+				(inp == 9'd2) ? 8'b00100101:
+				(inp == 9'd3) ? 8'b00001101:
+				(inp == 9'd4) ? 8'b10011001:
+				(inp == 9'd5) ? 8'b01001001:
+				(inp == 9'd6) ? 8'b01000001:
+				(inp == 9'd7) ? 8'b00011111:
+				(inp == 9'd8) ? 8'b00000001:
+				(inp == 9'd9) ? 8'b00001001:8'b00001111;
 endmodule
 
 module seven_show(clk, rst_n, a, b, c, d, an, led);

@@ -1,5 +1,5 @@
 module clienttop(
-	input wire [4:0] score,
+	input wire [8:0] score,
 	input wire clk,
 	input wire reset,
 	inout wire PS2_DATA,
@@ -15,7 +15,7 @@ module clienttop(
 	reg [8:0] decode;
 	wire been_ready;
 	
-	assign led = { 7'b1111111, been_ready, score, player_M};
+	assign led = { 4'b1111, score, player_M};
 	debounce der(
 		.pb_debounced(dere),
 		.pb(reset),
