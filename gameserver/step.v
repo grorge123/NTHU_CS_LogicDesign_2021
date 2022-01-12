@@ -43,6 +43,8 @@ module step(
 	reg signed [10:0] paddle2_pos[1:0][1:0];
 	reg signed [10:0] next_ball_pos[4:0][1:0];
 	reg signed [10:0] next_ball_vel[4:0][1:0];
+	reg signed [10:0] counter_ball_vel[4:0][1:0];
+	reg signed [10:0] next_counter_ball_vel[4:0][1:0];
 	reg signed [10:0] tmp_ball_pos[4:0][1:0];
 	reg signed [10:0] tmp_ball_vel[4:0][1:0];
 	reg [8:0] next_l_score[4:0];
@@ -85,22 +87,19 @@ module step(
 	parameter signed HALF_PAD_WIDTH = PAD_WIDTH / 2;
 	parameter signed HALF_PAD_HEIGHT = PAD_HEIGHT / 2;
 	parameter signed ZERO = 11'd0;
+	wire signed [10:0] paddle_vel;
+	assign paddle_vel = 11'd4;
 	reg [2:0] objcounter;
 	reg [2:0] next_objcounter;
-	reg [1:0] mode;
-	reg [1:0] next_mode[4:0];
-
-	// -1 2
-	// 1 3
-	// 2 -4
-	// -2 1
+	reg init_ball[4:0];
+	reg next_init_ball[4:0];
 	wire [7:0] out1, out2;
 	LFSR1 L1(.clk(clk), .rst_n(rst_n), .out(out1));
 	LFSR2 L2(.clk(clk), .rst_n(rst_n), .out(out2));
-	integer a, q, l, o, p, b, c; 
+	integer a, q, l, o, p, b, c, i;
 	always@(posedge clk)begin
 		if(rst_n)begin
-			objcounter <= 3'd0;
+			objcounter <= 3'b111;
 			paddle1_pos[0][0] <= HALF_PAD_WIDTH - 1;
 			paddle1_pos[0][1] <= HEIGHT / 2;
 			paddle1_pos[1][0] <= HALF_PAD_WIDTH - 1 + PAD_SPACE;
@@ -114,51 +113,66 @@ module step(
 			for(a = 0 ; a < 5 ; a = a + 1)begin
 				ball_pos[a][0] <= WIDTH / 2;
 				ball_pos[a][1] <= HEIGHT / 2;
+				init_ball[a] <= 1'd0;
 			end
-			// ball_vel[0][0] <= -11'd1;
-			// ball_vel[0][1] <= -11'd2;
-			ball_vel[0][0] <= -11'd5;
-			ball_vel[0][1] <= -11'd10;
-			ball_vel[1][0] <= 11'd2;
+			ball_vel[0][0] <= -11'd1;
+			ball_vel[0][1] <= -11'd2;
+			ball_vel[1][0] <= 11'd3;
 			ball_vel[1][1] <= 11'd1;
-			ball_vel[2][0] <= -11'd3;
+			ball_vel[2][0] <= -11'd2;
 			ball_vel[2][1] <= 11'd2;
-			ball_vel[3][0] <= 11'd3;
+			ball_vel[3][0] <= 11'd1;
 			ball_vel[3][1] <= 11'd1;
-			ball_vel[4][0] <= -11'd4;
+			ball_vel[4][0] <= -11'd2;
 			ball_vel[4][1] <= 11'd3;
-			mode <= 2'd0;
-		end else begin
-			mode <= mode + next_mode[0] + next_mode[1] + next_mode[2] + next_mode[3] + next_mode[4];
 			
+			counter_ball_vel[0][0] <= -11'd1;
+			counter_ball_vel[0][1] <= -11'd2;
+			counter_ball_vel[1][0] <= 11'd3;
+			counter_ball_vel[1][1] <= 11'd1;
+			counter_ball_vel[2][0] <= -11'd2;
+			counter_ball_vel[2][1] <= 11'd2;
+			counter_ball_vel[3][0] <= 11'd1;
+			counter_ball_vel[3][1] <= 11'd1;
+			counter_ball_vel[4][0] <= -11'd2;
+			counter_ball_vel[4][1] <= 11'd3;
+		end else begin
 			l_score <= l_score + next_l_score[0] + next_l_score[1] + next_l_score[2] + next_l_score[3] + next_l_score[4];
 			r_score <= r_score + next_r_score[0] + next_r_score[1] + next_r_score[2] + next_r_score[3] + next_r_score[4];
+			for(i = 0 ; i < 5 ; i = i + 1)begin
+				counter_ball_vel[i][0] <= next_counter_ball_vel[i][0];
+				counter_ball_vel[i][1] <= next_counter_ball_vel[i][1];
+				init_ball[i] <= next_init_ball[i];
+			end
 			if(stclk)begin
 				objcounter <= 3'b111;
 				for(l = 0 ; l < 5 ; l = l + 1)begin
+					init_ball[l] <= 1'd0;
 					ball_pos[l][0] <= tmp_ball_pos[l][0];
 					ball_pos[l][1] <= tmp_ball_pos[l][1];
 					ball_vel[l][0] <= tmp_ball_vel[l][0] == ZERO ? 11'd1 : tmp_ball_vel[l][0];
 					ball_vel[l][1] <= tmp_ball_vel[l][1];
+					counter_ball_vel[l][0] <= tmp_ball_vel[l][0];
+					counter_ball_vel[l][1] <= tmp_ball_vel[l][1];
 				end
 				if(AIM)begin
-					paddle1_pos[0][1] <= AI_M == 3'd2 && paddle1_pos[0][1] < HEIGHT - HALF_PAD_HEIGHT ? paddle1_pos[0][1] + 11'd12: 
-										AI_M == 3'd1  && paddle1_pos[0][1] > HALF_PAD_HEIGHT ? paddle1_pos[0][1] - 11'd12 : paddle1_pos[0][1];
-					paddle1_pos[1][1] <= AI_M == 3'd4 && paddle1_pos[1][1] < HEIGHT - HALF_PAD_HEIGHT ? paddle1_pos[1][1] + 11'd12: 
-										AI_M == 3'd3 && paddle1_pos[1][1] > HALF_PAD_HEIGHT ? paddle1_pos[1][1] - 11'd12 : paddle1_pos[1][1];
+					paddle1_pos[0][1] <= AI_M == 3'd1 && paddle1_pos[0][1] < HEIGHT - HALF_PAD_HEIGHT ? paddle1_pos[0][1] + 11'd12: 
+										AI_M == 3'd2  && paddle1_pos[0][1] > HALF_PAD_HEIGHT ? paddle1_pos[0][1] - 11'd12 : paddle1_pos[0][1];
+					paddle1_pos[1][1] <= AI_M == 3'd3 && paddle1_pos[1][1] < HEIGHT - HALF_PAD_HEIGHT ? paddle1_pos[1][1] + 11'd12: 
+										AI_M == 3'd4 && paddle1_pos[1][1] > HALF_PAD_HEIGHT ? paddle1_pos[1][1] - 11'd12 : paddle1_pos[1][1];
 				end else begin
-					paddle1_pos[0][1] <= play1_M == 3'd2 && paddle1_pos[0][1] < HEIGHT - HALF_PAD_HEIGHT ? paddle1_pos[0][1] + 11'd4: 
-										play1_M == 3'd1  && paddle1_pos[0][1] > HALF_PAD_HEIGHT ? paddle1_pos[0][1] - 11'd4 : paddle1_pos[0][1];
-					paddle1_pos[1][1] <= play1_M == 3'd4 && paddle1_pos[1][1] < HEIGHT - HALF_PAD_HEIGHT ? paddle1_pos[1][1] + 11'd4: 
-										play1_M == 3'd3 && paddle1_pos[1][1] > HALF_PAD_HEIGHT ? paddle1_pos[1][1] - 11'd4 : paddle1_pos[1][1];
+					paddle1_pos[0][1] <= play1_M == 3'd2 && paddle1_pos[0][1] < HEIGHT - HALF_PAD_HEIGHT ? paddle1_pos[0][1] + paddle_vel: 
+										play1_M == 3'd1  && paddle1_pos[0][1] > HALF_PAD_HEIGHT ? paddle1_pos[0][1] - paddle_vel : paddle1_pos[0][1];
+					paddle1_pos[1][1] <= play1_M == 3'd4 && paddle1_pos[1][1] < HEIGHT - HALF_PAD_HEIGHT ? paddle1_pos[1][1] + paddle_vel: 
+										play1_M == 3'd3 && paddle1_pos[1][1] > HALF_PAD_HEIGHT ? paddle1_pos[1][1] - paddle_vel : paddle1_pos[1][1];
 				end
-				paddle2_pos[0][1] <= play2_M == 3'd4 && paddle2_pos[0][1] < HEIGHT - HALF_PAD_HEIGHT? paddle2_pos[0][1] + 11'd4: 
-									play2_M == 3'd3 && paddle2_pos[0][1] > HALF_PAD_HEIGHT ? paddle2_pos[0][1] - 11'd4 : paddle2_pos[0][1];
-				paddle2_pos[1][1] <= play2_M == 3'd2 && paddle2_pos[1][1] < HEIGHT - HALF_PAD_HEIGHT? paddle2_pos[1][1] + 11'd4: 
-									play2_M == 3'd1 && paddle2_pos[1][1] > HALF_PAD_HEIGHT ? paddle2_pos[1][1] - 11'd4 : paddle2_pos[1][1];
+				paddle2_pos[0][1] <= play2_M == 3'd4 && paddle2_pos[0][1] < HEIGHT - HALF_PAD_HEIGHT? paddle2_pos[0][1] + paddle_vel: 
+									play2_M == 3'd3 && paddle2_pos[0][1] > HALF_PAD_HEIGHT ? paddle2_pos[0][1] - paddle_vel : paddle2_pos[0][1];
+				paddle2_pos[1][1] <= play2_M == 3'd2 && paddle2_pos[1][1] < HEIGHT - HALF_PAD_HEIGHT? paddle2_pos[1][1] + paddle_vel: 
+									play2_M == 3'd1 && paddle2_pos[1][1] > HALF_PAD_HEIGHT ? paddle2_pos[1][1] - paddle_vel : paddle2_pos[1][1];
 			end
 			else begin
-				objcounter <= (objcounter != 3'd6 ? next_objcounter : objcounter);
+				objcounter <= (objcounter != 3'd5 ? next_objcounter : objcounter);
 				paddle1_pos[0][1] <= paddle1_pos[0][1];
 				paddle1_pos[1][1] <= paddle1_pos[1][1];
 				paddle2_pos[0][1] <= paddle2_pos[0][1];
@@ -177,16 +191,29 @@ module step(
 		end
 	end
 	always@(posedge clk)begin
-		for(o = 0 ; o < 5 ; o = o + 1)begin
-			for(p = 0 ; p < 2 ; p = p + 1)begin
-				tmp_ball_pos[o][p] <= next_ball_pos[o][p];						
-				tmp_ball_vel[o][p] <= next_ball_vel[o][p];						
+		if(objcounter == 3'b111)begin
+			for(o = 0 ; o < 5 ; o = o + 1)begin
+				for(p = 0 ; p < 2 ; p = p + 1)begin
+					tmp_ball_pos[o][p] <= ball_pos[o][p];						
+					tmp_ball_vel[o][p] <= ball_vel[o][p];						
+				end
+			end
+		end else begin
+			for(o = 0 ; o < 5 ; o = o + 1)begin
+				for(p = 0 ; p < 2 ; p = p + 1)begin
+					tmp_ball_pos[o][p] <= next_ball_pos[o][p];						
+					tmp_ball_vel[o][p] <= next_ball_vel[o][p];						
+				end
 			end
 		end
 	end
 
 	always@(*)begin
-		next_objcounter = objcounter + 3'd1;
+		if(objcounter < 3'd5 && objcounter >= 3'd0)begin
+			next_objcounter = objcounter + (counter_ball_vel[objcounter][0] == 11'd0 && counter_ball_vel[objcounter][1] == 11'd0 ? 3'd1 : 3'd0);
+		end else begin 
+			next_objcounter = objcounter + 3'd1;
+		end
 	end
 	wire test1, test2, test3, test4;
 	wire signed [10:0]UPERBOUND;
@@ -198,62 +225,76 @@ module step(
 			always@(*)begin
 				next_l_score[id] = 5'd0;
 				next_r_score[id] = 5'd0;
-				next_mode[id] = 2'd0;
+				next_init_ball[id] = init_ball[id];
 				if(id == objcounter) begin
 					//ball update
-					next_ball_pos[id][0] = ball_pos[id][0] + ball_vel[id][0];
-					next_ball_pos[id][1] = ball_pos[id][1] + ball_vel[id][1];
+					next_ball_pos[id][0] = tmp_ball_pos[id][0] + (counter_ball_vel[id][0] == 0 ? 11'd0 : counter_ball_vel[id][0][10] == 0 ? 11'd1 : -11'd1);
+					next_ball_pos[id][1] = tmp_ball_pos[id][1] + (counter_ball_vel[id][1] == 0 ? 11'd0 : counter_ball_vel[id][1][10] == 0 ? 11'd1 : -11'd1);
+					next_counter_ball_vel[id][0] = counter_ball_vel[id][0] + (counter_ball_vel[id][0] == 0 ? 11'd0 : counter_ball_vel[id][0][10] == 0 ? -11'd1 : 11'd1);
+					next_counter_ball_vel[id][1] = counter_ball_vel[id][1] + (counter_ball_vel[id][1] == 0 ? 11'd0 : counter_ball_vel[id][1][10] == 0 ? -11'd1 : 11'd1);
 					next_ball_vel[id][0] = ball_vel[id][0];
 					next_ball_vel[id][1] = ball_vel[id][1];
 					//ball hit by side
-					if(ball_pos[id][1] <= BALL_RADIUS && ball_vel[id][1][10] == 1'd1)
+					if(ball_pos[id][1] <= BALL_RADIUS && ball_vel[id][1][10] == 1'd1)begin
 						next_ball_vel[id][1] = ball_vel[id][1] * -11'd1;
-					if(ball_pos[id][1] >= UPERBOUND && ball_vel[id][1][10] == 1'd0)
+						next_counter_ball_vel[id][1] = (counter_ball_vel[id][1] + (counter_ball_vel[id][1] == 0 ? 11'd0 : counter_ball_vel[id][1][10] == 0 ? -11'd1 : 11'd1)) * -11'd1;
+					end
+					if(ball_pos[id][1] >= UPERBOUND && ball_vel[id][1][10] == 1'd0)begin
 						next_ball_vel[id][1] = ball_vel[id][1] * -11'd1;
+						next_counter_ball_vel[id][1] = (counter_ball_vel[id][1] + (counter_ball_vel[id][1] == 0 ? 11'd0 : counter_ball_vel[id][1][10] == 0 ? -11'd1 : 11'd1)) * -11'd1;
+					end
 					//ball hit by paddle
 					for(q = 0 ; q < 2 ; q = q + 1)begin
 						if((ball_pos[id][0] + BALL_RADIUS + ball_vel[id][0]) >= (paddle1_pos[q][0] - PAD_WIDTH) && ball_pos[id][0] <= (paddle1_pos[q][0] - PAD_WIDTH) && ball_vel[id][0][10] == 1'b0 &&
 						ball_pos[id][1] >= paddle1_pos[q][1] - HALF_PAD_HEIGHT - BALL_RADIUS && ball_pos[id][1] - BALL_RADIUS <= paddle1_pos[q][1] + HALF_PAD_HEIGHT)begin
 							next_ball_vel[id][0] = (ball_vel[id][0] * -11'd1) - 11'd1;
 							next_ball_vel[id][1] = ball_vel[id][1] > 0 ? ball_vel[id][1] + 11'd1: ball_vel[id][1] - 11'd1;
+							next_counter_ball_vel[id][0] = (counter_ball_vel[id][0] + (counter_ball_vel[id][0] == 0 ? 11'd0 : counter_ball_vel[id][0][10] == 0 ? -11'd1 : 11'd1)) * -11'd1;
 						end
 						if((ball_pos[id][0] - BALL_RADIUS + ball_vel[id][0]) <= (paddle1_pos[q][0] + PAD_WIDTH) && ball_pos[id][0] >= (paddle1_pos[q][0] + PAD_WIDTH) && ball_vel[id][0][10] == 1'b1 &&
 						ball_pos[id][1] >= paddle1_pos[q][1] - HALF_PAD_HEIGHT - BALL_RADIUS && ball_pos[id][1] - BALL_RADIUS <= paddle1_pos[q][1] + HALF_PAD_HEIGHT)begin
 							next_ball_vel[id][0] = (ball_vel[id][0] * -11'd1) + 11'd1;
 							next_ball_vel[id][1] = ball_vel[id][1] > 0 ? ball_vel[id][1] + 11'd1: ball_vel[id][1] - 11'd1;
+							next_counter_ball_vel[id][0] = (counter_ball_vel[id][0] + (counter_ball_vel[id][0] == 0 ? 11'd0 : counter_ball_vel[id][0][10] == 0 ? -11'd1 : 11'd1)) * -11'd1;
 						end
 						if(ball_pos[id][0] <= BALL_RADIUS)begin
 							next_ball_vel[id][0] = {9'd0,out2[2],out2[6]};
-													 
+							next_counter_ball_vel[id][0] = 11'd0; 
+							next_counter_ball_vel[id][1] = 11'd0;
 							next_ball_vel[id][1] = (out2[2] == 1'd0 ? {9'd0,out2[1:0]} : {9'b0,out2[1:0]} * -11'd1);
 							next_ball_pos[id][0] = WIDTH / 2;
 							next_ball_pos[id][1] = HEIGHT / 2;
-							next_mode[id] = 2'd1;
-							next_r_score[id] = 9'd1;
+							next_r_score[id] = (init_ball[id] == 1'd0 ? 9'd1 : 9'd0);
+							next_init_ball[id] = 1'd1;
 						end
 
 						if((ball_pos[id][0] + BALL_RADIUS + ball_vel[id][0]) >= (paddle2_pos[q][0] - PAD_WIDTH) && ball_pos[id][0] <= (paddle2_pos[q][0] - PAD_WIDTH) && ball_vel[id][0][10] == 1'b0 &&
 						ball_pos[id][1] >= paddle2_pos[q][1] - HALF_PAD_HEIGHT - BALL_RADIUS && ball_pos[id][1] - BALL_RADIUS <= paddle2_pos[q][1] + HALF_PAD_HEIGHT)begin
 							next_ball_vel[id][0] = (ball_vel[id][0] * -11'd1) - 11'd1;
 							next_ball_vel[id][1] = ball_vel[id][1] > 0 ? ball_vel[id][1] + 11'd1: ball_vel[id][1] - 11'd1;
+							next_counter_ball_vel[id][0] = (counter_ball_vel[id][0] + (counter_ball_vel[id][0] == 0 ? 11'd0 : counter_ball_vel[id][0][10] == 0 ? -11'd1 : 11'd1)) * -11'd1;
 						end
 						if((ball_pos[id][0] - BALL_RADIUS + ball_vel[id][0]) <= (paddle2_pos[q][0] + PAD_WIDTH) && ball_pos[id][0] >= (paddle2_pos[q][0] + PAD_WIDTH) && ball_vel[id][0][10] == 1'b1 &&
 						ball_pos[id][1] >= paddle2_pos[q][1] - HALF_PAD_HEIGHT - BALL_RADIUS && ball_pos[id][1] - BALL_RADIUS <= paddle2_pos[q][1] + HALF_PAD_HEIGHT)begin
 							next_ball_vel[id][0] = (ball_vel[id][0] * -11'd1) + 11'd1;
 							next_ball_vel[id][1] = ball_vel[id][1] > 0 ? ball_vel[id][1] + 11'd1: ball_vel[id][1] - 11'd1;
+							next_counter_ball_vel[id][0] = (counter_ball_vel[id][0] + (counter_ball_vel[id][0] == 0 ? 11'd0 : counter_ball_vel[id][0][10] == 0 ? -11'd1 : 11'd1)) * -11'd1;
 						end
-						if(ball_pos[id][0] >= WIDTH + 1 - BALL_RADIUS - PAD_WIDTH)begin
+						if(ball_pos[id][0] >= WIDTH + 1 - BALL_RADIUS)begin
 							next_ball_vel[id][0] = {9'b111111111,out2[4],out2[6]};
-													 
+							next_counter_ball_vel[id][0] = 11'd0; 
+							next_counter_ball_vel[id][1] = 11'd0; 
 							next_ball_vel[id][1] = (out2[2] == 1'd0 ? {9'd0,out2[1:0]} : {9'b0,out2[1:0]} * -11'd1);
 							next_ball_pos[id][0] = WIDTH / 2;
 							next_ball_pos[id][1] = HEIGHT / 2;
-							next_mode[id] = 2'd1;
-							next_l_score[id] = 9'd1;
+							next_l_score[id] = (init_ball[id] == 1'd0 ? 9'd1 : 9'd0);
+							next_init_ball[id] = 1'd1;
 						end
 
 					end
 				end else begin
+					next_counter_ball_vel[id][0] = counter_ball_vel[id][0];
+					next_counter_ball_vel[id][1] = counter_ball_vel[id][1];
 					next_ball_pos[id][0] = tmp_ball_pos[id][0];
 					next_ball_pos[id][1] = tmp_ball_pos[id][1];
 					next_ball_vel[id][0] = tmp_ball_vel[id][0];

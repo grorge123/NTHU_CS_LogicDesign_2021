@@ -71,7 +71,7 @@ module gametop (
 	// assign fri60 = 27'd1666666;
 	assign fri60 = 27'd833333;
 	// assign fri60 = 27'd555556;
-	// assign fri60 = 27'd8;
+	// assign fri60 = 27'd50;
 	assign fri1 = 27'd100000000;
 	// assign fri1 = 27'd100;
 	assign fr1 = (clcounter2 == fri1);

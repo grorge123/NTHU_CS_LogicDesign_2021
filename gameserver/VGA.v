@@ -84,19 +84,19 @@ module VGA(
 
 	// assign sub = ;
 	wire [10:0] lf, rf;
-	assign lf = (11'd320 + ({2'b0, Play2_S} - {2'b0, Play1_S}) * 11'd2);
+	assign lf = (11'd320 + ({2'b0, Play1_S} - {2'b0, Play2_S}) * 11'd2);
 	assign rf = (11'd320 - ({2'b0, Play2_S} - {2'b0, Play1_S}) * 11'd2);
 	always@(*)begin
 		// pixel = outdata;
 		//backgroud
 		if(Play1_S > Play2_S)begin
-			if(h_cnt <= lf)begin
+			if(h_cnt <= lf || lf < 11'd320)begin
 				pixel = {4'd0, 4'd15, 4'd0};
 			end else begin
 				pixel = {4'd0, 4'd0, 4'd0};
 			end
 		end else begin
-			if(h_cnt <= rf)begin
+			if(h_cnt <= rf || rf > 11'd320)begin
 				pixel = {4'd0, 4'd15, 4'd0};
 			end else begin
 				pixel = {4'd0, 4'd0, 4'd0};
