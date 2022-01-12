@@ -13,8 +13,11 @@ module clienttop(
 	wire [511:0] key_down;
 	wire [8:0] last_change;
 	reg [8:0] decode;
-	wire been_ready;
-	
+	wire been_ready, rst;
+	reg [26:0] clcounter;
+	wire [26:0] fri60;
+	reg lf = 1'd0;
+	assign fri60 = 27'd833333;
 	assign led = { 4'b1111, score, player_M};
 	debounce der(
 		.pb_debounced(dere),
@@ -42,7 +45,14 @@ module clienttop(
 		.clk(clk),
 		.rst_n(rst)
 	);
-	always @ (posedge clk, posedge rst) begin
+	always @ (posedge clk or posedge rst) begin
+		if(rst)begin
+			clcounter <= 27'd0;
+		end else begin
+			clcounter <= (clcounter == fri60 ? 27'd0 : clcounter + 27'd1);
+		end
+	end
+	always @ (posedge clk or posedge rst) begin
 		if (rst) begin
 			player_M <= 3'd0;
 		end else begin
@@ -53,16 +63,21 @@ module clienttop(
 			// end else begin
 			// 	player_M <= player_M;
 			// end
-			if(key_down[9'h1D] == 1'b1)begin
-				player_M <= 3'd1;
-			end else if(key_down[9'h1B] == 1'b1)begin
-				player_M <= 3'd2;
-			end else if(key_down[9'h75] == 1'b1)begin
-				player_M <= 3'd3;
-			end else if(key_down[9'h72] == 1'b1)begin
-				player_M <= 3'd4;
+			if(clcounter == fri60)begin
+				if(lf == 1'd0 && key_down[9'h1D] == 1'b1)begin
+					player_M <= 3'd1;
+				end else if(lf == 1'd0 && key_down[9'h1B] == 1'b1)begin
+					player_M <= 3'd2;
+				end else if(lf == 1'd1 && key_down[9'h75] == 1'b1)begin
+					player_M <= 3'd3;
+				end else if(lf == 1'd1 && key_down[9'h72] == 1'b1)begin
+					player_M <= 3'd4;
+				end else begin
+					player_M <= 3'd0;
+				end
+				lf <= !lf;
 			end else begin
-				player_M <= 3'd0;
+				player_M <= player_M;
 			end
 
 		end
@@ -78,6 +93,7 @@ module clienttop(
 		endcase
 
 	end
+	
 	always@(*)begin
 		case (action)
 			3'd1 : decode = 9'h1D;

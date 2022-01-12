@@ -96,7 +96,7 @@ module VGA(
 				pixel = {4'd0, 4'd0, 4'd0};
 			end
 		end else begin
-			if(h_cnt <= rf || rf < 11'd320)begin
+			if(h_cnt <= rf || rf > 11'd320)begin
 				pixel = {4'd0, 4'd15, 4'd0};
 			end else begin
 				pixel = {4'd0, 4'd0, 4'd0};
