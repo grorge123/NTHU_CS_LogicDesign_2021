@@ -6,6 +6,8 @@ module step(
 	input wire clk,
 	input wire rst_n,
 	input wire stclk,
+	input wire [1:0] pad1_add_vel,   // add paddle1 velocity(personality) {R2, T1}
+	input wire [1:0] pad2_add_vel,   // add paddle2 velocity(personality) {U1, W2}
 	output signed [10:0] ball1_posx,
 	output signed [10:0] ball1_posy,
 	output signed [10:0] ball2_posx,
@@ -87,8 +89,10 @@ module step(
 	parameter signed HALF_PAD_WIDTH = PAD_WIDTH / 2;
 	parameter signed HALF_PAD_HEIGHT = PAD_HEIGHT / 2;
 	parameter signed ZERO = 11'd0;
-	wire signed [10:0] paddle_vel;
-	assign paddle_vel = 11'd4;
+	wire signed [10:0] paddle1_vel;
+	wire signed [10:0] paddle2_vel;
+	assign paddle1_vel = (pad1_add_vel == 2'd3 ? 11'd20 : (pad1_add_vel == 2'd2 ? 11'd16 : (pad1_add_vel == 2'd1 ? 11'd10 : 11'd8)));
+	assign paddle2_vel = (pad2_add_vel == 2'd3 ? 11'd20 : (pad2_add_vel == 2'd2 ? 11'd16 : (pad2_add_vel == 2'd1 ? 11'd10 : 11'd8)));
 	reg [2:0] objcounter;
 	reg [2:0] next_objcounter;
 	reg init_ball[4:0];
@@ -161,15 +165,15 @@ module step(
 					paddle1_pos[1][1] <= AI_M == 3'd3 && paddle1_pos[1][1] < HEIGHT - HALF_PAD_HEIGHT ? paddle1_pos[1][1] + 11'd12: 
 										AI_M == 3'd4 && paddle1_pos[1][1] > HALF_PAD_HEIGHT ? paddle1_pos[1][1] - 11'd12 : paddle1_pos[1][1];
 				end else begin
-					paddle1_pos[0][1] <= play1_M == 3'd2 && paddle1_pos[0][1] < HEIGHT - HALF_PAD_HEIGHT ? paddle1_pos[0][1] + paddle_vel: 
-										play1_M == 3'd1  && paddle1_pos[0][1] > HALF_PAD_HEIGHT ? paddle1_pos[0][1] - paddle_vel : paddle1_pos[0][1];
-					paddle1_pos[1][1] <= play1_M == 3'd4 && paddle1_pos[1][1] < HEIGHT - HALF_PAD_HEIGHT ? paddle1_pos[1][1] + paddle_vel: 
-										play1_M == 3'd3 && paddle1_pos[1][1] > HALF_PAD_HEIGHT ? paddle1_pos[1][1] - paddle_vel : paddle1_pos[1][1];
+					paddle1_pos[0][1] <= play1_M == 3'd2 && paddle1_pos[0][1] < HEIGHT - HALF_PAD_HEIGHT ? paddle1_pos[0][1] + paddle1_vel: 
+										play1_M == 3'd1  && paddle1_pos[0][1] > HALF_PAD_HEIGHT ? paddle1_pos[0][1] - paddle1_vel : paddle1_pos[0][1];
+					paddle1_pos[1][1] <= play1_M == 3'd4 && paddle1_pos[1][1] < HEIGHT - HALF_PAD_HEIGHT ? paddle1_pos[1][1] + paddle1_vel: 
+										play1_M == 3'd3 && paddle1_pos[1][1] > HALF_PAD_HEIGHT ? paddle1_pos[1][1] - paddle1_vel : paddle1_pos[1][1];
 				end
-				paddle2_pos[0][1] <= play2_M == 3'd4 && paddle2_pos[0][1] < HEIGHT - HALF_PAD_HEIGHT? paddle2_pos[0][1] + paddle_vel: 
-									play2_M == 3'd3 && paddle2_pos[0][1] > HALF_PAD_HEIGHT ? paddle2_pos[0][1] - paddle_vel : paddle2_pos[0][1];
-				paddle2_pos[1][1] <= play2_M == 3'd2 && paddle2_pos[1][1] < HEIGHT - HALF_PAD_HEIGHT? paddle2_pos[1][1] + paddle_vel: 
-									play2_M == 3'd1 && paddle2_pos[1][1] > HALF_PAD_HEIGHT ? paddle2_pos[1][1] - paddle_vel : paddle2_pos[1][1];
+				paddle2_pos[0][1] <= play2_M == 3'd4 && paddle2_pos[0][1] < HEIGHT - HALF_PAD_HEIGHT? paddle2_pos[0][1] + paddle2_vel: 
+									play2_M == 3'd3 && paddle2_pos[0][1] > HALF_PAD_HEIGHT ? paddle2_pos[0][1] - paddle2_vel : paddle2_pos[0][1];
+				paddle2_pos[1][1] <= play2_M == 3'd2 && paddle2_pos[1][1] < HEIGHT - HALF_PAD_HEIGHT? paddle2_pos[1][1] + paddle2_vel: 
+									play2_M == 3'd1 && paddle2_pos[1][1] > HALF_PAD_HEIGHT ? paddle2_pos[1][1] - paddle2_vel : paddle2_pos[1][1];
 			end
 			else begin
 				objcounter <= (objcounter != 3'd5 ? next_objcounter : objcounter);
