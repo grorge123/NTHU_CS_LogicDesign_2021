@@ -1,18 +1,17 @@
-// `timescale 1ns/1ps
-// module test();
-// reg clk = 1'd0;
-// always #(1)clk = !clk;
-// reg rst_n = 0;
-// wire [15:0] address;
-// AI m(clk, rst_n, 11'd0, 11'd0, 11'd0, 11'd0, 11'd0, 11'd0, 11'd240, 11'd320, 11'd0, 11'd0, -11'd1, -11'd2, 11'd2, 11'd2, -11'd3, -11'd5, 11'd0, -11'd4, -11'd7, 11'd9, 11'd1, 11'd240, 11'd61, 11'd288, address);
-// 	initial begin
-// 		#50;
-// 		$finish;
-// 	end
-// endmodule
+/////////////////////////////////////////////////
+//                caculate AI action
+// I/O
+// clk            : system clock signal
+// ball*_posx     : ball x-axis position
+// ball*_posy     : ball y-axis position
+// paddle10_posx  : left paddle1 x-axis position
+// paddle10_posy  : left paddle1 y-axis position
+// paddle11_posx  : left paddle2 x-axis position
+// paddle11_posy  : left paddle2 y-axis position
+// action         :	predict AI action
+/////////////////////////////////////////////////
 module AI(
 	input wire clk,
-	input wire rst_n,
 	input signed [10:0] ball1_posx,
 	input signed [10:0] ball1_posy,
 	input signed [10:0] ball2_posx,
@@ -42,14 +41,18 @@ module AI(
 	parameter signed BALL_RADIUS = 11'd10;
 	parameter signed PAD_HEIGHT = 11'd80;
 	parameter signed HALF_PAD_HEIGHT = PAD_HEIGHT / 2;
-	parameter membit = 16;
 	wire [1:0] data;
-	reg [membit - 1:0] ty[4:0][1:0];
-	wire [membit - 1:0] address;
+	wire [15:0] address;
 	wire [1:0] outdata;
 	wire signed [10:0] tmp_future_ball_pos[4:0][1:0];
 	wire signed [10:0] future_ball_pos[4:0][1:0];
 	reg signed [10:0] order_ball_pos[4:0][1:0];
+	reg signed [10:0] sorted_bus[4:0][1:0];
+	reg [15:0] ty[4:0][1:0];
+	reg [2:0] i;
+    reg [2:0] temp;
+    reg [2:0] array [1:5];
+    integer j;
 	assign tmp_future_ball_pos[0][0] = ball1_posx + 11'd3 * ball1_velx;
 	assign tmp_future_ball_pos[0][1] = ball1_posy + 11'd3 * ball1_vely;
 	assign tmp_future_ball_pos[1][0] = ball2_posx + 11'd3 * ball2_velx;
@@ -72,6 +75,7 @@ module AI(
 	assign future_ball_pos[4][1] = tmp_future_ball_pos[4][1][10] == 1'd0 ? tmp_future_ball_pos[4][1] : tmp_future_ball_pos[4][1] * -11'd1;
 	assign data = 12'd0;
 	assign action = {1'd0, outdata} + 3'd1;
+
  	blk_mem_gen_0 blk_mem_gen_0_inst(
       .clka(clk),
       .wea(0),
@@ -79,7 +83,7 @@ module AI(
       .dina(data),
       .douta(outdata)
     ); 
-	reg signed [10:0] sorted_bus[4:0][1:0];
+
 	always @(posedge clk) begin
         order_ball_pos[0][0] <= sorted_bus[0][0];
         order_ball_pos[0][1] <= sorted_bus[0][1];
@@ -92,10 +96,7 @@ module AI(
 		order_ball_pos[4][0] <= sorted_bus[4][0];
         order_ball_pos[4][1] <= sorted_bus[4][1];
     end
-	reg [2:0] i;
-    integer j;
-    reg [2:0] temp;
-    reg [2:0] array [1:5];
+	
     always @(*) begin
         for (i = 3'd0; i < 3'd5; i = i + 3'd1) begin
             array[i+1] = i;
@@ -192,5 +193,6 @@ module AI(
 		else
 			ty[4][1] = 16'd0;
 	end
+
 	assign address = ty[0][0] + ty[0][1] + ty[1][0] + ty[1][1] + ty[2][0] + ty[2][1] + ty[3][0] + ty[3][1] + ty[4][0] + ty[4][1];
 endmodule

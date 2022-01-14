@@ -1,3 +1,28 @@
+//////////////////////////////////////////
+//               game engine
+// I/O
+// play1_M         : player1 action
+// play2_M         : player2 action
+// AIM             : turn on/off AI
+// AI_M            : AI action
+// clk             : system clock
+// rst_n           : reset signal
+// stclk           : 120FPS clock
+// pad1_add_vel    : custom left paddle velocity
+// pad2_add_vel    : custom right paddle velocity
+// ball*_posx      : ball x-axis position
+// ball*_posy      : ball y-axis position
+// paddle10_posx   : left paddle1 x-axis position
+// paddle10_posy   : left paddle1 y-axis position
+// paddle11_posx   : left paddle2 x-axis position
+// paddle11_posy   : left paddle1 y-axis position
+// paddle20_posx   : right paddle1 x-axis position
+// paddle20_posy   : right paddle1 y-axis position
+// paddle21_posx   : right paddle2 x-axis position
+// paddle21_posy   : right paddle2 y-axis position
+// l_score         : left score
+// r_score         : right score
+//////////////////////////////////////////
 module step(
 	input wire [2:0] play1_M,
 	input wire [2:0] play2_M,
@@ -49,8 +74,25 @@ module step(
 	reg signed [10:0] next_counter_ball_vel[4:0][1:0];
 	reg signed [10:0] tmp_ball_pos[4:0][1:0];
 	reg signed [10:0] tmp_ball_vel[4:0][1:0];
+
+	parameter signed WIDTH = 11'd640;
+	parameter signed HEIGHT = 11'd480;       
+	parameter signed BALL_RADIUS = 11'd6;
+	parameter signed PAD_WIDTH = 11'd4;
+	parameter signed PAD_HEIGHT = 11'd80;
+	parameter signed PAD_SPACE = 11'd60;
+	parameter signed HALF_PAD_WIDTH = PAD_WIDTH / 2;
+	parameter signed HALF_PAD_HEIGHT = PAD_HEIGHT / 2;
+	parameter signed ZERO = 11'd0;
+	wire signed [10:0] paddle1_vel;
+	wire signed [10:0] paddle2_vel;
+	wire [7:0] out1, out2;
 	reg [8:0] next_l_score[4:0];
 	reg [8:0] next_r_score[4:0];
+	reg [2:0] objcounter;
+	reg [2:0] next_objcounter;
+	reg init_ball[4:0];
+	reg next_init_ball[4:0];
 
 	assign ball1_posx = ball_pos[0][0];
 	assign ball1_posy = ball_pos[0][1];
@@ -80,26 +122,13 @@ module step(
 	assign paddle11_posy = paddle1_pos[1][1];
 	assign paddle21_posx = paddle2_pos[1][0];
 	assign paddle21_posy = paddle2_pos[1][1];
-	parameter signed WIDTH = 11'd640;
-	parameter signed HEIGHT = 11'd480;       
-	parameter signed BALL_RADIUS = 11'd6;
-	parameter signed PAD_WIDTH = 11'd4;
-	parameter signed PAD_HEIGHT = 11'd80;
-	parameter signed PAD_SPACE = 11'd60;
-	parameter signed HALF_PAD_WIDTH = PAD_WIDTH / 2;
-	parameter signed HALF_PAD_HEIGHT = PAD_HEIGHT / 2;
-	parameter signed ZERO = 11'd0;
-	wire signed [10:0] paddle1_vel;
-	wire signed [10:0] paddle2_vel;
+	
 	assign paddle1_vel = (pad1_add_vel == 2'd3 ? 11'd20 : (pad1_add_vel == 2'd2 ? 11'd16 : (pad1_add_vel == 2'd1 ? 11'd10 : 11'd8)));
 	assign paddle2_vel = (pad2_add_vel == 2'd3 ? 11'd20 : (pad2_add_vel == 2'd2 ? 11'd16 : (pad2_add_vel == 2'd1 ? 11'd10 : 11'd8)));
-	reg [2:0] objcounter;
-	reg [2:0] next_objcounter;
-	reg init_ball[4:0];
-	reg next_init_ball[4:0];
-	wire [7:0] out1, out2;
+	
 	LFSR1 L1(.clk(clk), .rst_n(rst_n), .out(out1));
 	LFSR2 L2(.clk(clk), .rst_n(rst_n), .out(out2));
+	
 	integer a, q, l, o, p, b, c, i;
 	always@(posedge clk)begin
 		if(rst_n)begin
