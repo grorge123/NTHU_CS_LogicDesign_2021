@@ -1,3 +1,15 @@
+//////////////////////////////////////////////////////////
+//           player_top module for this project
+// I/O
+// reset     : reset button signal
+// score     : player's socre
+// PS2_DATA  : keyboard signal
+// PS2_CLK   : keyboard signal clk
+// seven     : seven display
+// an        : seven display enable
+// player_M  : player action
+// led       : led display for debug
+//////////////////////////////////////////////////////////
 module clienttop(
 	input wire [8:0] score,
 	input wire clk,
@@ -93,7 +105,7 @@ module clienttop(
 		endcase
 
 	end
-	
+
 	always@(*)begin
 		case (action)
 			3'd1 : decode = 9'h1D;
