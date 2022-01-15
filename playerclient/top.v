@@ -68,13 +68,6 @@ module clienttop(
 		if (rst) begin
 			player_M <= 3'd0;
 		end else begin
-			// if (been_ready && key_down[last_change] == 1'b1) begin
-			// 	player_M <= action;
-			// end else if(been_ready && key_down[last_change] == 1'b0 && last_change == decode) begin
-			// 	player_M <= 3'd0;
-			// end else begin
-			// 	player_M <= player_M;
-			// end
 			if(clcounter == fri60)begin
 				if(lf == 1'd0 && key_down[9'h1D] == 1'b1)begin
 					player_M <= 3'd1;

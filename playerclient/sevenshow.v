@@ -8,25 +8,17 @@ module sevenshow(
 	reg [7:0] counter;
 	reg [5:0] tmp;
 	reg [5:0] next_tmp;
-	// wire [7:0] cacu;
 
-	// assign cacu = counter * 8'd32 + {3'd0, inp};
 	wire [8:0] lo[4:0];
 	wire [8:0] dlo[4:0];
     assign lo[0] = inp % 9'd10;
     assign lo[1] = (inp / 9'd10) % 9'd10;
     assign lo[2] = (inp / 9'd100) % 9'd10;
     assign lo[3] = 8'd0;
-	// assign lo[3] = counter;
 	always@(posedge clk)begin
 		if(rst_n)begin
-			// counter <= 8'd0;
 			tmp <= 8'd0; 
 		end else begin
-			// if(tmp > 5'd29 && next_tmp < 5'd5)
-				// counter <= counter + 8'd1;
-			// else
-				// counter <= counter;
 			tmp <= next_tmp;
 		end
 	end

@@ -125,13 +125,14 @@ module step(
 	
 	assign paddle1_vel = (pad1_add_vel == 2'd3 ? 11'd20 : (pad1_add_vel == 2'd2 ? 11'd16 : (pad1_add_vel == 2'd1 ? 11'd10 : 11'd8)));
 	assign paddle2_vel = (pad2_add_vel == 2'd3 ? 11'd20 : (pad2_add_vel == 2'd2 ? 11'd16 : (pad2_add_vel == 2'd1 ? 11'd10 : 11'd8)));
-	
+	// generate two different random number in one clock
 	LFSR1 L1(.clk(clk), .rst_n(rst_n), .out(out1));
 	LFSR2 L2(.clk(clk), .rst_n(rst_n), .out(out2));
 	
 	integer a, q, l, o, p, b, c, i;
 	always@(posedge clk)begin
 		if(rst_n)begin
+			// initial all parameter
 			objcounter <= 3'b111;
 			paddle1_pos[0][0] <= HALF_PAD_WIDTH - 1;
 			paddle1_pos[0][1] <= HEIGHT / 2;
@@ -170,6 +171,7 @@ module step(
 			counter_ball_vel[4][0] <= -11'd2;
 			counter_ball_vel[4][1] <= 11'd3;
 		end else begin
+			// update variable which need to caculate every clock
 			l_score <= l_score + next_l_score[0] + next_l_score[1] + next_l_score[2] + next_l_score[3] + next_l_score[4];
 			r_score <= r_score + next_r_score[0] + next_r_score[1] + next_r_score[2] + next_r_score[3] + next_r_score[4];
 			for(i = 0 ; i < 5 ; i = i + 1)begin
@@ -177,6 +179,7 @@ module step(
 				counter_ball_vel[i][1] <= next_counter_ball_vel[i][1];
 				init_ball[i] <= next_init_ball[i];
 			end
+			// update variable which need to change every 1/120 second
 			if(stclk)begin
 				objcounter <= 3'b111;
 				for(l = 0 ; l < 5 ; l = l + 1)begin
@@ -188,6 +191,7 @@ module step(
 					counter_ball_vel[l][0] <= tmp_ball_vel[l][0];
 					counter_ball_vel[l][1] <= tmp_ball_vel[l][1];
 				end
+				// update paddle position
 				if(AIM)begin
 					paddle1_pos[0][1] <= AI_M == 3'd1 && paddle1_pos[0][1] < HEIGHT - HALF_PAD_HEIGHT ? paddle1_pos[0][1] + 11'd12: 
 										AI_M == 3'd2  && paddle1_pos[0][1] > HALF_PAD_HEIGHT ? paddle1_pos[0][1] - 11'd12 : paddle1_pos[0][1];
@@ -205,6 +209,7 @@ module step(
 									play2_M == 3'd1 && paddle2_pos[1][1] > HALF_PAD_HEIGHT ? paddle2_pos[1][1] - paddle2_vel : paddle2_pos[1][1];
 			end
 			else begin
+				// keep value to original value
 				objcounter <= (objcounter != 3'd5 ? next_objcounter : objcounter);
 				paddle1_pos[0][1] <= paddle1_pos[0][1];
 				paddle1_pos[1][1] <= paddle1_pos[1][1];
@@ -224,6 +229,7 @@ module step(
 		end
 	end
 	always@(posedge clk)begin
+		// read data from last frame or tmp memory
 		if(objcounter == 3'b111)begin
 			for(o = 0 ; o < 5 ; o = o + 1)begin
 				for(p = 0 ; p < 2 ; p = p + 1)begin
@@ -242,6 +248,7 @@ module step(
 	end
 
 	always@(*)begin
+		// update control counter
 		if(objcounter < 3'd5 && objcounter >= 3'd0)begin
 			next_objcounter = objcounter + (counter_ball_vel[objcounter][0] == 11'd0 && counter_ball_vel[objcounter][1] == 11'd0 ? 3'd1 : 3'd0);
 		end else begin 
@@ -276,7 +283,7 @@ module step(
 						next_ball_vel[id][1] = ball_vel[id][1] * -11'd1;
 						next_counter_ball_vel[id][1] = (counter_ball_vel[id][1] + (counter_ball_vel[id][1] == 0 ? 11'd0 : counter_ball_vel[id][1][10] == 0 ? -11'd1 : 11'd1)) * -11'd1;
 					end
-					//ball hit by paddle
+					//ball hit by left paddle
 					for(q = 0 ; q < 2 ; q = q + 1)begin
 						if((ball_pos[id][0] + BALL_RADIUS + ball_vel[id][0]) >= (paddle1_pos[q][0] - PAD_WIDTH) && ball_pos[id][0] <= (paddle1_pos[q][0] - PAD_WIDTH) && ball_vel[id][0][10] == 1'b0 &&
 						ball_pos[id][1] >= paddle1_pos[q][1] - HALF_PAD_HEIGHT - BALL_RADIUS && ball_pos[id][1] - BALL_RADIUS <= paddle1_pos[q][1] + HALF_PAD_HEIGHT)begin
@@ -300,7 +307,7 @@ module step(
 							next_r_score[id] = (init_ball[id] == 1'd0 ? 9'd1 : 9'd0);
 							next_init_ball[id] = 1'd1;
 						end
-
+						// check ball hit right paddle
 						if((ball_pos[id][0] + BALL_RADIUS + ball_vel[id][0]) >= (paddle2_pos[q][0] - PAD_WIDTH) && ball_pos[id][0] <= (paddle2_pos[q][0] - PAD_WIDTH) && ball_vel[id][0][10] == 1'b0 &&
 						ball_pos[id][1] >= paddle2_pos[q][1] - HALF_PAD_HEIGHT - BALL_RADIUS && ball_pos[id][1] - BALL_RADIUS <= paddle2_pos[q][1] + HALF_PAD_HEIGHT)begin
 							next_ball_vel[id][0] = (ball_vel[id][0] * -11'd1) - 11'd1;
@@ -326,6 +333,7 @@ module step(
 
 					end
 				end else begin
+					// keep value when counter not equal ball id
 					next_counter_ball_vel[id][0] = counter_ball_vel[id][0];
 					next_counter_ball_vel[id][1] = counter_ball_vel[id][1];
 					next_ball_pos[id][0] = tmp_ball_pos[id][0];

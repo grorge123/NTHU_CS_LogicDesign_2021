@@ -39,7 +39,7 @@ module AI(
 	output [2:0] action
 );
 	//basic setting
-	parameter signed BALL_RADIUS = 11'd6，;
+	parameter signed BALL_RADIUS = 11'd6;
 	parameter signed PAD_HEIGHT = 11'd80;
 	parameter signed HALF_PAD_HEIGHT = PAD_HEIGHT / 2;
 	wire [1:0] data;
@@ -98,7 +98,7 @@ module AI(
 		order_ball_pos[4][0] <= sorted_bus[4][0];
         order_ball_pos[4][1] <= sorted_bus[4][1];
     end
-	
+	//bubble sort
     always @(*) begin
         for (i = 3'd0; i < 3'd5; i = i + 3'd1) begin
             array[i+1] = i;
@@ -120,10 +120,12 @@ module AI(
        end
     end
 	wire signed [10:0] UPPER0, LOWER0, UPPER1, LOWER1;
+	// set paddle boundary
 	assign UPPER0 = paddle10_posy + HALF_PAD_HEIGHT;
 	assign LOWER0 = paddle10_posy - HALF_PAD_HEIGHT;
 	assign UPPER1 = paddle11_posy + HALF_PAD_HEIGHT;
 	assign LOWER1 = paddle11_posy - HALF_PAD_HEIGHT;
+	// encode status
 	always@(*)begin
 		if(order_ball_pos[0][1] > UPPER0)
 			ty[0][0] = 16'd1;
