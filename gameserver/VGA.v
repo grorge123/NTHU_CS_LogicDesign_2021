@@ -1,3 +1,28 @@
+//////////////////////////////////////////////////////////
+//           VGA module for this project
+// I/O
+// reset               : reset button signal
+// clk                 : system clock
+// ball*_posx          : ball x-axis position
+// ball*_posy          : ball y-axis position
+// play2_S             : player2 score
+// play1_S             : player1 score
+// ball*_velx          : ball x-axis velocity
+// ball*_vely          : ball y-axis velocity
+// reciprocal_counter  : the counter for game reciprocal number display
+// time_counter        : the counter for game time
+// gamestart       	   : game start signal
+// mode                : turn on/off AI
+// pad1**_posx         : custom paddle1 X-pos
+// pad1**_posy         : custom paddle1 Y-pos
+// pad2**_posx         : custom paddle2 X-pos 
+// pad2**_posy         : custom paddle2 Y-pos 
+// VGAR                : VGA color
+// VGAG                : VGA color
+// VGAB                : VGA color
+// hsync               : for VGA signal
+// vsync               : for VGA signal
+//////////////////////////////////////////////////////////
 module VGA(
 	input wire clk,
 	input wire rst_n,
@@ -11,20 +36,15 @@ module VGA(
 	input wire signed [10:0] ball4_posy,
 	input wire signed [10:0] ball5_posx,
 	input wire signed [10:0] ball5_posy,
-	//new thing
 	input wire signed [10:0] ball1_velx,
 	input wire signed [10:0] ball2_velx,
 	input wire signed [10:0] ball3_velx,
 	input wire signed [10:0] ball4_velx,
 	input wire signed [10:0] ball5_velx,
-	//score
 	input wire [8:0] Play1_S,
 	input wire [8:0] Play2_S,
-	// reciprocal
 	input wire [2:0] reciprocal_counter,
-	//time
 	input wire [7:0] timecounter,
-	//start button
 	input wire gamestart,
 	
 	input wire signed [10:0] paddle10_posx,
@@ -41,17 +61,17 @@ module VGA(
 	output wire hsync,
 	output wire vsync
 );
+	//some basic thing for VGA
 	wire [11:0] data;
 	assign data = 12'd0;
     wire clk_25MHz;
-    // wire clk_22;
     wire [16:0] pixel_addr;
     reg [11:0] pixel;
     wire [11:0] outdata;
     wire valid;
     wire signed [10:0] h_cnt; //640
     wire signed [10:0] v_cnt;  //480
-		
+	//basic setting
 	parameter signed WIDTH = 11'd640;
 	parameter signed HEIGHT = 11'd480;       
 	parameter signed BALL_RADIUS = 11'd6;
@@ -60,19 +80,37 @@ module VGA(
 	parameter signed PAD_SPACE = 11'd60;
 	parameter signed HALF_PAD_WIDTH = PAD_WIDTH / 2;
 	parameter signed HALF_PAD_HEIGHT = PAD_HEIGHT / 2;
-
+	//pixel setting
 	assign {vgaRed, vgaGreen, vgaBlue} = (valid==1'b1) ? pixel:12'h0;
-
-    assign pixel_addr = (({6'd0,h_cnt} >> 17'd1) + 17'd320 * ({6'd0, v_cnt} >> 17'd1) ) % 17'd76800;
-
+	assign pixel_addr = (({6'd0,h_cnt} >> 17'd1) + 17'd320 * ({6'd0, v_cnt} >> 17'd1) ) % 17'd76800;
+	//blood control
 	wire [10:0] lf, rf;
 	assign lf = (11'd320 + ({2'b0, Play1_S} - {2'b0, Play2_S}) * 11'd2);
 	assign rf = (11'd320 - ({2'b0, Play2_S} - {2'b0, Play1_S}) * 11'd2);
+	//combinaitonal circuit for display 
 	always@(*)begin
+		// if game not start, we set the picture with our memory
 		if(!gamestart)
 			pixel = outdata;
+		// ========================================
+		// if game start we should following thing :
+		// 1. blood background
+		// 2. pause
+		// 3. central line
+		// 4. reciprocal number
+		// 5. paddle  
+		// 6. ball 
+		// 7. win
+		// 8. ready
+		// ========================================
 		else begin
-			//backgroud
+			// ========================================
+			// blood backgroud:
+			// Player1(left)  -> green 
+			// Player2(right) -> black 
+			// the thing should notice is to use the if syntax to draw blood
+			// that avoid lf or rf have some wrong signal to make bug for display 
+			// ========================================
 			if(Play1_S > Play2_S)begin
 				if(h_cnt <= lf || lf < 11'd320)begin
 					pixel = {4'd0, 4'd15, 4'd0};
@@ -92,14 +130,16 @@ module VGA(
 					pixel = {4'd0, 4'd0, 4'd0};
 				end
 			end
-			// if(h_cnt >= 11'd320 )
-			// 	pixel = {4'd0 , 4'd15 , 4'd0};
-			
 			//central line
 			if(h_cnt >= 11'd319 && h_cnt <= 11'd321)
 				pixel = {4'd15, 4'd15, 4'd15};
-			
-			//reciprocal number VGA
+			// ========================================
+			// reciprocal number & pause & ready
+			// we use the reciprocal_counter signal to control the thing we should
+			// 
+			//
+			//
+			// ========================================
 			case(reciprocal_counter)
 				3'd5:begin
 					

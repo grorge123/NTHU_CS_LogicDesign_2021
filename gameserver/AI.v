@@ -38,12 +38,14 @@ module AI(
 	input signed [10:0] paddle11_posy,
 	output [2:0] action
 );
-	parameter signed BALL_RADIUS = 11'd10;
+	//basic setting
+	parameter signed BALL_RADIUS = 11'd6，;
 	parameter signed PAD_HEIGHT = 11'd80;
 	parameter signed HALF_PAD_HEIGHT = PAD_HEIGHT / 2;
 	wire [1:0] data;
 	wire [15:0] address;
 	wire [1:0] outdata;
+	//AI 
 	wire signed [10:0] tmp_future_ball_pos[4:0][1:0];
 	wire signed [10:0] future_ball_pos[4:0][1:0];
 	reg signed [10:0] order_ball_pos[4:0][1:0];
@@ -75,7 +77,7 @@ module AI(
 	assign future_ball_pos[4][1] = tmp_future_ball_pos[4][1][10] == 1'd0 ? tmp_future_ball_pos[4][1] : tmp_future_ball_pos[4][1] * -11'd1;
 	assign data = 12'd0;
 	assign action = {1'd0, outdata} + 3'd1;
-
+	//import weight.coe (q-learning)
  	blk_mem_gen_0 blk_mem_gen_0_inst(
       .clka(clk),
       .wea(0),
