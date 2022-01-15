@@ -61,7 +61,8 @@ module gametop (
 	reg [26:0] clcounter2, next_clcounter2;
 	reg [26:0] clcounter3, next_clcounter3;
 	reg [26:0] next_clcounter;
-	reg [2:0] reciprocal_counter, next_reciprocal_counter; // control recipcal
+	// control reciprocal
+	reg [2:0] reciprocal_counter, next_reciprocal_counter; 
 	wire [26:0] fri60, fri180;
 	wire [26:0] fri1;
 	assign led = { play1_S[8:0], play2_S[5:0], play1_M, play2_M};
@@ -70,6 +71,12 @@ module gametop (
 	assign fri2 = 27'd130000000;
 	assign fr1 = (clcounter2 == fri1);
 	assign fr2 = (clcounter3 == fri2);
+	// ============================
+	// stclk:
+	// use clcounter to update stclk 
+	// when nstop = 0, the game pauses, the stclk should stop update
+	// when the reciprocal number is running, the stclk should stop update, too.
+	// ============================
 	assign stclk = (ticounter > 8'd0 ? (clcounter == fri60 ? 1'd1 : 1'd0) : 1'd0) && nstop && !reciprocal_counter;
 	assign timecounter = ticounter;
 	assign VGAcounter = reciprocal_counter;
@@ -104,8 +111,22 @@ module gametop (
 	.ball1_velx(ball1_velx), .ball2_velx(ball2_velx), .ball3_velx(ball3_velx), .ball4_velx(ball4_velx), .ball5_velx(ball5_velx),
 	.Play1_S(play1_S), .Play2_S(play2_S), .reciprocal_counter(VGAcounter), .timecounter(timecounter), .gamestart(gamestart),
 	.paddle10_posy(paddle10_posy), .paddle11_posx(paddle11_posx), .paddle11_posy(paddle11_posy), .paddle20_posx(paddle20_posx), .paddle20_posy(paddle20_posy), .paddle21_posx(paddle21_posx), .paddle21_posy(paddle21_posy));
-	// nstop = 1 the game start , nstop = 0 the game stop
-	 
+	// =======================================
+	// use the combinational circuit & sequential circuit to update following signal:
+	// 1.ticounter
+	// 2.clcounter
+	// 3.clcounter2
+	// 4.clcounter3
+	// 5.nstop
+	// 	   - if start button pressed & game start signal was 1, nstop will reverse.
+	// 	   - nstop = 1 the game start , nstop = 0 the game stop.
+	// 6.reciprocal_counter
+	//     - the game start, counter will be 5. It means VGA will display ready.
+	//     - the game pause, counter will be 5. It means the VGA display pause.
+	//     - the game continue, counter will be 3 -> 2 -> 1. It means the VGA will display reciprocal number.
+	// 7.gamestart 
+	// 	   - if start button pressed, game start signal will be 1.
+	// =======================================
  	always@(posedge clk)begin
 		if(rst_n)begin
 			ticounter <= 8'd180; 
