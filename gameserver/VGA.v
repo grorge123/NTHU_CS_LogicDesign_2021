@@ -130,23 +130,26 @@ module VGA(
 					pixel = {4'd0, 4'd0, 4'd0};
 				end
 			end
-			//central line
+			//central line(white)
 			if(h_cnt >= 11'd319 && h_cnt <= 11'd321)
 				pixel = {4'd15, 4'd15, 4'd15};
 			// ========================================
 			// reciprocal number & pause & ready
-			// we use the reciprocal_counter signal to control the thing we should
-			// 
-			//
-			//
+			// we use the reciprocal_counter signal to control the thing we should display
+			// 5: draw ready 
+			// 4: draw pause     
+			// 3: number 3
+			// 2: number 2
+			// 1: number 1
+		    // other: draw pixels on central line which has same color in order to keep best coding style
 			// ========================================
 			case(reciprocal_counter)
 				3'd5:begin
-					
 					//white rectangle
 					if(h_cnt >= 11'd194 && h_cnt <= 11'd446 && v_cnt >= 11'd25 && v_cnt <= 11'd100)
 						pixel = {4'd15, 4'd15, 4'd15};
-					//R
+					//R(R = P+\)
+					// the part of P
 					if(h_cnt >= 11'd206 && h_cnt <= 11'd218 && v_cnt >= 11'd37 && v_cnt <= 11'd97)
 						pixel = {4'd0, 4'd0, 4'd0};
 					if(h_cnt >= 11'd218 && h_cnt <= 11'd230 && ((v_cnt >= 11'd37 && v_cnt <= 11'd49) || (v_cnt >= 11'd61 && v_cnt <= 11'd73)))
@@ -154,6 +157,7 @@ module VGA(
 					if(h_cnt >= 11'd230 && h_cnt <= 11'd242 && v_cnt >= 11'd37 && v_cnt <= 11'd73)
 						pixel = {4'd0, 4'd0, 4'd0};
 
+					// the part of \
 					if(h_cnt >= 11'd218 && h_cnt <= 11'd231 && v_cnt >= 11'd73 && v_cnt <= 11'd74)
 						pixel = {4'd0, 4'd0, 4'd0};
 					if(h_cnt >= 11'd219 && h_cnt <= 11'd232 && v_cnt >= 11'd75 && v_cnt <= 11'd76)
@@ -164,7 +168,6 @@ module VGA(
 						pixel = {4'd0, 4'd0, 4'd0};
 					if(h_cnt >= 11'd222 && h_cnt <= 11'd235 && v_cnt >= 11'd81 && v_cnt <= 11'd82)
 						pixel = {4'd0, 4'd0, 4'd0};
-
 					if(h_cnt >= 11'd223 && h_cnt <= 11'd236 && v_cnt >= 11'd83 && v_cnt <= 11'd84)
 						pixel = {4'd0, 4'd0, 4'd0};
 					if(h_cnt >= 11'd224 && h_cnt <= 11'd237 && v_cnt >= 11'd85 && v_cnt <= 11'd86)
@@ -254,6 +257,7 @@ module VGA(
 						pixel = {4'd0, 4'd0, 4'd0}; 
 				end		
 				3'd3:begin
+					//white square
 					if(h_cnt >= 11'd290 && h_cnt <= 11'd350 && v_cnt >= 11'd25 && v_cnt <= 11'd100)
 						pixel = {4'd15, 4'd15, 4'd15};
 					//3
@@ -265,6 +269,7 @@ module VGA(
 						pixel = {4'd0, 4'd0, 4'd0};
 				end
 				3'd2:begin
+					//white square
 					if(h_cnt >= 11'd290 && h_cnt <= 11'd350 && v_cnt >= 11'd25 && v_cnt <= 11'd100)
 						pixel = {4'd15, 4'd15, 4'd15};
 					//2
@@ -277,6 +282,7 @@ module VGA(
 					
 				end
 				3'd1:begin
+					//white square
 					if(h_cnt >= 11'd290 && h_cnt <= 11'd350 && v_cnt >= 11'd25 && v_cnt <= 11'd100)
 						pixel = {4'd15, 4'd15, 4'd15};
 					//1
@@ -288,8 +294,11 @@ module VGA(
 					if(h_cnt >= 11'd319 && h_cnt <= 11'd321 && v_cnt >= 11'd1)
 						pixel = {4'd15, 4'd15, 4'd15};
 			endcase
-			
-			//right paddle(red)     left paddle(blue)
+			// =========================================
+			// paddle
+			// draw paddle use the basic setting & paddle_pos
+			// right paddle(red)     left paddle(blue)
+			// =========================================
 			if(h_cnt >= paddle10_posx - PAD_WIDTH && h_cnt <= paddle10_posx + PAD_WIDTH && v_cnt >= paddle10_posy - HALF_PAD_HEIGHT && v_cnt <= paddle10_posy + HALF_PAD_HEIGHT)
 				pixel = {4'd0,4'd0,4'd15};
 			if(h_cnt >= paddle11_posx - PAD_WIDTH && h_cnt <= paddle11_posx + PAD_WIDTH && v_cnt >= paddle11_posy - HALF_PAD_HEIGHT && v_cnt <= paddle11_posy + HALF_PAD_HEIGHT)
@@ -298,9 +307,15 @@ module VGA(
 				pixel = {4'd15,4'd0,4'd0};
 			if(h_cnt >= paddle21_posx - PAD_WIDTH && h_cnt <= paddle21_posx + PAD_WIDTH && v_cnt >= paddle21_posy - HALF_PAD_HEIGHT && v_cnt <= paddle21_posy + HALF_PAD_HEIGHT)
 				pixel = {4'd15,4'd0,4'd0};
-			//ball(fill)
-			//if ball goes to left => red 
-			//if ball goes to right => blue
+			// =========================================
+			// ball(fill)
+			// draw ball use the basic setting & ball_pos & ball_vel
+			// use the ball velocity to draw the color  
+			// if ball goes to left => red 
+			// if ball goes to right => blue
+			// the thing should notice is to judge the velocity value which is negative or positive
+			// the method is watching the MSB is 1(negative) or 0(positive) 
+			// =========================================
 			if(h_cnt >= ball1_posx - BALL_RADIUS && h_cnt <= ball1_posx + BALL_RADIUS && v_cnt <= ball1_posy + BALL_RADIUS && v_cnt >= ball1_posy - BALL_RADIUS)begin
 				if(ball1_velx[10] == 0)
 					pixel = {4'd0, 4'd0, 4'd15};
@@ -331,8 +346,13 @@ module VGA(
 				else 
 					pixel = {4'd15, 4'd0, 4'd0};
 			end
-
-			
+			// =========================================
+			// win
+			// When timecounter goes to 0, it means the game is over
+			// compare the score of the both side
+			// the winner's side will display "WIN"
+			// if the both side score is the same, the p2(right) win
+			// =========================================
 			if(timecounter == 8'd0)begin
 				if(Play1_S > Play2_S)begin
 					//W
